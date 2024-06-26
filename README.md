@@ -1,24 +1,24 @@
-# Alpine
+# Deluge
 
-[![Alpine](http://dockeri.co/image/snowdreamtech/alpine)](https://hub.docker.com/r/snowdreamtech/alpine)
+[![Deluge](http://dockeri.co/image/snowdreamtech/deluge)](https://hub.docker.com/r/snowdreamtech/deluge)
 
-Docker Image packaging for Alpine. (amd64, arm32v6, arm32v7, arm64v8, i386, ppc64le,riscv64, s390x)
+Docker Image packaging for Deluge. (amd64, arm32v6, arm32v7, arm64v8, i386, ppc64le,riscv64, s390x)
 
 # Run
 
 ```bash
-docker run --rm snowdreamtech/alpine:latest
+docker run --rm snowdreamtech/deluge:latest
 ```
 
 ```bash
-docker run -e TZ=Asia/Shanghai --rm snowdreamtech/alpine:latest
+docker run -e TZ=Asia/Shanghai --rm snowdreamtech/deluge:latest
 ```
 
 # Development
 
 ```bash
 docker buildx create --use --name build --node build --driver-opt network=host
-docker buildx build -t snowdreamtech/alpine --platform=linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/riscv64,linux/s390x . --push
+docker buildx build -t snowdreamtech/deluge --platform=linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/riscv64,linux/s390x . --push
 ```
 
 ## Reference
@@ -31,7 +31,7 @@ docker buildx build -t snowdreamtech/alpine --platform=linux/386,linux/amd64,lin
 1. [Faster Multi-Platform Builds: Dockerfile Cross-Compilation Guide](https://www.docker.com/blog/faster-multi-platform-builds-dockerfile-cross-compilation-guide/)
 1. [docker/buildx](https://github.com/docker/buildx)
 
-## Contact (备注：alpine)
+## Contact (备注：deluge)
 
 * Email: sn0wdr1am@qq.com
 * QQ: 3217680847

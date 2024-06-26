@@ -1,10 +1,8 @@
-FROM alpine:3.20.0
+FROM snowdreamtech/alpine:3.20.0
 
 LABEL maintainer="snowdream <sn0wdr1am@qq.com>"
 
-RUN apk add --no-cache musl-locales \
-    musl-locales-lang \
-    tzdata
+RUN apk add --no-cache deluge
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
