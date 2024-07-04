@@ -2,7 +2,7 @@ FROM snowdreamtech/alpine:3.20.0
 
 LABEL maintainer="snowdream <sn0wdr1am@qq.com>"
 
-ENV WEBUI_PORT=8080 \
+ENV WEBUI_PORT=8112 \
     TORRENTING_PORT=6881 \
     WEBUI_USER="" \
     WEBUI_PASS="" \
