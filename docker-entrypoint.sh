@@ -1,6 +1,17 @@
 #!/bin/sh
 set -e
 
+# set WEBUI_PASS
+if [ -n "${WEBUI_PASS}" ]; then
+    # password
+    HASH=$(/var/lib/deluge/bin/passwd.py "${WEBUI_PASS}")
+
+    pwd_salt=$(echo "${HASH}" | cut -d ":" -f 1)
+    pwd_sha1=$(echo "${HASH}" | cut -d ":" -f 2)
+    
+    sed -i "s|\"pwd_salt\":.*|\"pwd_salt\": \"${pwd_salt}\",|g" /var/lib/deluge/config/web.conf
+    sed -i "s|\"pwd_sha1\":.*|\"pwd_sha1\": \"${pwd_sha1}\",|g" /var/lib/deluge/config/web.conf
+fi
 
 # set WEBUI_LANG
 if [ -n "${WEBUI_LANG}" ]; then

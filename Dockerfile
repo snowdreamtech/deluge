@@ -4,8 +4,7 @@ LABEL maintainer="snowdream <sn0wdr1am@qq.com>"
 
 ENV WEBUI_PORT=8112 \
     TORRENTING_PORT=6881 \
-    WEBUI_USER="" \
-    WEBUI_PASS="" \
+    WEBUI_PASS="deluge" \
     WEBUI_LANG="en" 
 
 RUN apk add --no-cache deluge   \
@@ -19,6 +18,8 @@ RUN apk add --no-cache deluge   \
     && chown -R  deluge:deluge /var/lib/deluge 
 
 COPY config /var/lib/deluge/config
+
+COPY bin /var/lib/deluge/bin
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
