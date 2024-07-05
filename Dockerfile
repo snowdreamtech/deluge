@@ -15,7 +15,11 @@ RUN apk add --no-cache deluge   \
     && mkdir -p /var/lib/deluge/downloads/  \
     && mkdir -p /var/lib/deluge/torrents/  \
     && mkdir -p /var/lib/deluge/log/  \
-    && chown -R  deluge:deluge /var/lib/deluge 
+    && chown -R  deluge:deluge /var/lib/deluge \
+    && mkdir -p /usr/share/GeoIP \
+    && wget -c https://dl.miyuru.lk/geoip/maxmind/country/maxmind.dat.gz \
+    && gunzip maxmind.dat.gz \
+    && mv maxmind.dat /usr/share/GeoIP/GeoIP.dat
 
 COPY config /var/lib/deluge/config
 
