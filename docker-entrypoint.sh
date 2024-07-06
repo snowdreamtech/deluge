@@ -1,6 +1,15 @@
 #!/bin/sh
 set -e
 
+# set RPC_PORT
+if [ -n "${RPC_PORT}" ]; then
+    sed -i "s|\"daemon_port\":.*|\"daemon_port\": ${RPC_PORT},|g" /var/lib/deluge/config/core.conf
+    sed -i "\:127.0.0.1:{
+     n
+     s/.*/            ${RPC_PORT},/
+  }"  /var/lib/deluge/config/hostlist.conf
+fi
+
 # set WEBUI_PASS
 if [ -n "${WEBUI_PASS}" ]; then
     # password
@@ -20,11 +29,16 @@ fi
 
 # set WEBUI_PORT
 if [ -n "${WEBUI_PORT}" ]; then
-    sed -i "s|\"port\":.*|\"port\": \"${WEBUI_PORT}\",|g" /var/lib/deluge/config/web.conf
+    sed -i "s|\"port\":.*|\"port\": ${WEBUI_PORT},|g" /var/lib/deluge/config/web.conf
+fi
+
+# set PEER_PORT
+if [ -n "${PEER_PORT}" ]; then
+    sed -i "s|\"listen_ports\":.*],|\"listen_ports\": [\n\t\t${PEER_PORT}\n\t\t${PEER_PORT}],|g" /var/lib/deluge/config/core.conf
 fi
 
 # Deluge Bittorrent Client Web Interface
-/usr/bin/deluge-web --config  /var/lib/deluge/config -p 8112
+/usr/bin/deluge-web --config  /var/lib/deluge/config
 
 # Deluge Bittorrent Client Daemon
 /usr/bin/deluged -d --config  /var/lib/deluge/config

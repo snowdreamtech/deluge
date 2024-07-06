@@ -2,8 +2,9 @@ FROM snowdreamtech/alpine:3.20.0
 
 LABEL maintainer="snowdream <sn0wdr1am@qq.com>"
 
-ENV WEBUI_PORT=8112 \
-    TORRENTING_PORT=6881 \
+ENV PEER_PORT=6881 \
+    RPC_PORT=58846 \
+    WEBUI_PORT=8112 \
     WEBUI_PASS="deluge" \
     WEBUI_LANG="en" 
 
