@@ -4,12 +4,16 @@ set -e
 # set RPC_PORT
 if [ -n "${RPC_PORT}" ]; then
     sed -i "s|\"daemon_port\":.*|\"daemon_port\": ${RPC_PORT},|g" /var/lib/deluge/config/core.conf
-    if [ -f "/var/lib/deluge/config/hostlist.conf" ]; then
-        sed -i "\:127.0.0.1:{
+    
+    (
+        sleep 5
+        if [ -f "/var/lib/deluge/config/hostlist.conf" ]; then
+            sed -i "\:127.0.0.1:{
         n
         s/.*/            ${RPC_PORT},/
-        }"  /var/lib/deluge/config/hostlist.conf
-    fi
+            }"  /var/lib/deluge/config/hostlist.conf
+        fi
+    ) &
 fi
 
 # set WEBUI_PASS
@@ -40,7 +44,7 @@ if [ -n "${PEER_PORT}" ]; then
      n
      s/.*/            ${PEER_PORT},/
      n
-     s/.*/            ${PEER_PORT},/
+     s/.*/            ${PEER_PORT}/
     }"  /var/lib/deluge/config/core.conf
 fi
 
