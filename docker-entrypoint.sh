@@ -49,7 +49,7 @@ if [ -n "${RPC_PORT}" ]; then
         if [ -f "${DELUGE_HOSTLIST_PATH}" ]; then
             sed -i "\:127.0.0.1:{
         n
-        s/.*/            ${RPC_PORT},/
+        s/.*/                ${RPC_PORT},/
             }"  ${DELUGE_HOSTLIST_PATH}
         fi
     ) &
