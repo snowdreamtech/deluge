@@ -1,17 +1,56 @@
 #!/bin/sh
 set -e
 
+DELUGE_PATH=/var/lib/deluge
+DELUGE_BIN_PATH=${DELUGE_PATH}/bin
+DELUGE_CONFIG_PATH=${DELUGE_PATH}/config
+DELUGE_AUTH_PATH=${DELUGE_CONFIG_PATH}/auth
+DELUGE_CORE_PATH=${DELUGE_CONFIG_PATH}/core.conf
+DELUGE_WEB_PATH=${DELUGE_CONFIG_PATH}/web.conf
+DELUGE_HOSTLIST_PATH=${DELUGE_CONFIG_PATH}/hostlist.conf
+
+
+# set Auth for RPC
+if [ ! -f "${DELUGE_AUTH_PATH}" ]; then
+    touch ${DELUGE_AUTH_PATH}
+fi
+
+AUTH=$(${DELUGE_BIN_PATH}/account.py "${RPC_USER}" "${RPC_PASS}" "${AUTH_LEVEL}" )
+sed -i "/^${RPC_USER}:/d" ${DELUGE_AUTH_PATH}
+echo "${AUTH}" >>${DELUGE_AUTH_PATH}
+
+# set Hostlist for RPC
+if [ ! -f "${DELUGE_HOSTLIST_PATH}" ]; then
+    HOST_ID=$(uuidgen  -x | sed "s|-||g")
+    RPC_HASH=$(echo "${AUTH}" | cut -d ":" -f 2)
+    
+    echo "{
+        \"file\": 3,
+        \"format\": 1
+    }{
+        \"hosts\": [
+            [
+                \"${HOST_ID}\",
+                \"127.0.0.1\",
+                ${RPC_PORT},
+                \"${RPC_USER}\",
+                \"${RPC_HASH}\"
+            ]
+        ]
+    }" > ${DELUGE_HOSTLIST_PATH}
+fi
+
 # set RPC_PORT
 if [ -n "${RPC_PORT}" ]; then
-    sed -i "s|\"daemon_port\":.*|\"daemon_port\": ${RPC_PORT},|g" /var/lib/deluge/config/core.conf
+    sed -i "s|\"daemon_port\":.*|\"daemon_port\": ${RPC_PORT},|g" ${DELUGE_CORE_PATH}
     
     (
         sleep 5
-        if [ -f "/var/lib/deluge/config/hostlist.conf" ]; then
+        if [ -f "${DELUGE_HOSTLIST_PATH}" ]; then
             sed -i "\:127.0.0.1:{
         n
         s/.*/            ${RPC_PORT},/
-            }"  /var/lib/deluge/config/hostlist.conf
+            }"  ${DELUGE_HOSTLIST_PATH}
         fi
     ) &
 fi
@@ -19,23 +58,23 @@ fi
 # set WEBUI_PASS
 if [ -n "${WEBUI_PASS}" ]; then
     # password
-    HASH=$(/var/lib/deluge/bin/passwd.py "${WEBUI_PASS}")
+    HASH=$(${DELUGE_BIN_PATH}/passwd.py "${WEBUI_PASS}")
     
     pwd_salt=$(echo "${HASH}" | cut -d ":" -f 1)
     pwd_sha1=$(echo "${HASH}" | cut -d ":" -f 2)
     
-    sed -i "s|\"pwd_salt\":.*|\"pwd_salt\": \"${pwd_salt}\",|g" /var/lib/deluge/config/web.conf
-    sed -i "s|\"pwd_sha1\":.*|\"pwd_sha1\": \"${pwd_sha1}\",|g" /var/lib/deluge/config/web.conf
+    sed -i "s|\"pwd_salt\":.*|\"pwd_salt\": \"${pwd_salt}\",|g" ${DELUGE_WEB_PATH}
+    sed -i "s|\"pwd_sha1\":.*|\"pwd_sha1\": \"${pwd_sha1}\",|g" ${DELUGE_WEB_PATH}
 fi
 
 # set WEBUI_LANG
 if [ -n "${WEBUI_LANG}" ]; then
-    sed -i "s|\"language\":.*|\"language\": \"${WEBUI_LANG}\",|g" /var/lib/deluge/config/web.conf
+    sed -i "s|\"language\":.*|\"language\": \"${WEBUI_LANG}\",|g" ${DELUGE_WEB_PATH}
 fi
 
 # set WEBUI_PORT
 if [ -n "${WEBUI_PORT}" ]; then
-    sed -i "s|\"port\":.*|\"port\": ${WEBUI_PORT},|g" /var/lib/deluge/config/web.conf
+    sed -i "s|\"port\":.*|\"port\": ${WEBUI_PORT},|g" ${DELUGE_WEB_PATH}
 fi
 
 # set PEER_PORT
@@ -45,14 +84,14 @@ if [ -n "${PEER_PORT}" ]; then
      s/.*/            ${PEER_PORT},/
      n
      s/.*/            ${PEER_PORT}/
-    }"  /var/lib/deluge/config/core.conf
+    }"  ${DELUGE_CORE_PATH}
 fi
 
 # Deluge Bittorrent Client Web Interface
-/usr/bin/deluge-web --config  /var/lib/deluge/config
+/usr/bin/deluge-web --config  ${DELUGE_CONFIG_PATH}
 
 # Deluge Bittorrent Client Daemon
-/usr/bin/deluged -d --config  /var/lib/deluge/config
+/usr/bin/deluged -d --config  ${DELUGE_CONFIG_PATH}
 
 # exec commands
 exec "$@"

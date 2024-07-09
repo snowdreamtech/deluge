@@ -4,11 +4,15 @@ LABEL maintainer="snowdream <sn0wdr1am@qq.com>"
 
 ENV PEER_PORT=6881 \
     RPC_PORT=58846 \
+    RPC_USER="localclient" \
+    RPC_PASS="" \
+    AUTH_LEVEL=10 \
     WEBUI_PORT=8112 \
     WEBUI_PASS="deluge" \
     WEBUI_LANG="en" 
 
-RUN apk add --no-cache deluge   \
+RUN apk add --no-cache deluge \
+    uuidgen \
     && mkdir -p /var/lib/deluge/  \
     && adduser -h /var/lib/deluge/ -s /sbin/nologin -g deluge -D deluge >/dev/null 2>&1 \
     && mkdir -p /var/lib/deluge/config/  \
