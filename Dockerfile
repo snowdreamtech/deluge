@@ -2,7 +2,9 @@ FROM snowdreamtech/alpine:3.20.0
 
 LABEL maintainer="snowdream <sn0wdr1am@qq.com>"
 
-ENV PEER_PORT=6881 \
+ENV FLOOD_AUTH=none \
+    FLOOD_PORT=3000 \
+    PEER_PORT=6881 \
     RPC_PORT=58846 \
     RPC_USER="localclient" \
     RPC_PASS="" \
@@ -13,6 +15,8 @@ ENV PEER_PORT=6881 \
 
 RUN apk add --no-cache deluge \
     uuidgen \
+    nodejs \
+    npm \
     && mkdir -p /var/lib/deluge/  \
     && adduser -h /var/lib/deluge/ -s /sbin/nologin -g deluge -D deluge >/dev/null 2>&1 \
     && mkdir -p /var/lib/deluge/config/  \
@@ -24,7 +28,8 @@ RUN apk add --no-cache deluge \
     && mkdir -p /usr/share/GeoIP \
     && wget -c https://dl.miyuru.lk/geoip/maxmind/country/maxmind.dat.gz \
     && gunzip maxmind.dat.gz \
-    && mv maxmind.dat /usr/share/GeoIP/GeoIP.dat
+    && mv maxmind.dat /usr/share/GeoIP/GeoIP.dat \
+    && npm install --global flood
 
 COPY config /var/lib/deluge/config
 
@@ -32,6 +37,6 @@ COPY bin /var/lib/deluge/bin
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
-EXPOSE 8112 58846 58946 58946/udp
+EXPOSE 3000 8112 58846 58946 58946/udp
 
 ENTRYPOINT ["docker-entrypoint.sh"]
