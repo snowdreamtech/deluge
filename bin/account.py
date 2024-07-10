@@ -32,5 +32,5 @@ if password == '' :
 hashed_password=sha(str(password).encode('utf8')).hexdigest()
 auth_level=str(authlevel)
 
-account_string = "{username}:{hashed_password}:{authlevel},{username}:{password}:{authlevel}".format(username=username,password=password,hashed_password=hashed_password,authlevel=auth_level)
+account_string = "{username}:{hashed_password}:{authlevel}".format(username=username,hashed_password=hashed_password,authlevel=auth_level)
 print(account_string)

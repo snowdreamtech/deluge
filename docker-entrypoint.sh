@@ -15,11 +15,9 @@ if [ ! -f "${DELUGE_AUTH_PATH}" ]; then
     touch ${DELUGE_AUTH_PATH}
 fi
 
-ACCOUNT=$(${DELUGE_BIN_PATH}/account.py "${RPC_USER}" "${RPC_PASS}" "${AUTH_LEVEL}" )
-AUTH=$(echo "${ACCOUNT}" | cut -d "," -f 1)
-RPC_AUTH=$(echo "${ACCOUNT}" | cut -d "," -f 2)
-RPC_USER=$(echo "${RPC_AUTH}" | cut -d ":" -f 1)
-RPC_PASS=$(echo "${RPC_AUTH}" | cut -d ":" -f 2)
+AUTH=$(${DELUGE_BIN_PATH}/account.py "${RPC_USER}" "${RPC_PASS}" "${AUTH_LEVEL}" )
+RPC_USER=$(echo "${AUTH}" | cut -d ":" -f 1)
+RPC_HASH=$(echo "${AUTH}" | cut -d ":" -f 2)
 
 sed -i "/^${RPC_USER}:/d" ${DELUGE_AUTH_PATH}
 echo "${AUTH}" >>${DELUGE_AUTH_PATH}
@@ -27,7 +25,6 @@ echo "${AUTH}" >>${DELUGE_AUTH_PATH}
 # set Hostlist for RPC
 if [ ! -f "${DELUGE_HOSTLIST_PATH}" ]; then
     HOST_ID=$(uuidgen  -x | sed "s|-||g")
-    RPC_HASH=$(echo "${AUTH}" | cut -d ":" -f 2)
     
     echo "{
         \"file\": 3,
@@ -92,11 +89,11 @@ if [ -n "${PEER_PORT}" ]; then
     }"  ${DELUGE_CORE_PATH}
 fi
 
-# Deluge Bittorrent Client Web Interface
-/usr/bin/deluge-web --config  ${DELUGE_CONFIG_PATH}
-
 # Deluge Bittorrent Client Daemon
-/usr/bin/deluged -d --config  ${DELUGE_CONFIG_PATH}
+/usr/bin/deluged --config  ${DELUGE_CONFIG_PATH}
+
+# Deluge Bittorrent Client Web Interface
+/usr/bin/deluge-web -d --config  ${DELUGE_CONFIG_PATH}
 
 # exec commands
 exec "$@"
