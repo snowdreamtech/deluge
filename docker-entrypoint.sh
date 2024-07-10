@@ -15,7 +15,12 @@ if [ ! -f "${DELUGE_AUTH_PATH}" ]; then
     touch ${DELUGE_AUTH_PATH}
 fi
 
-AUTH=$(${DELUGE_BIN_PATH}/account.py "${RPC_USER}" "${RPC_PASS}" "${AUTH_LEVEL}" )
+ACCOUNT=$(${DELUGE_BIN_PATH}/account.py "${RPC_USER}" "${RPC_PASS}" "${AUTH_LEVEL}" )
+AUTH=$(echo "${ACCOUNT}" | cut -d "," -f 1)
+RPC_AUTH=$(echo "${ACCOUNT}" | cut -d "," -f 2)
+RPC_USER=$(echo "${RPC_AUTH}" | cut -d ":" -f 1)
+RPC_PASS=$(echo "${RPC_AUTH}" | cut -d ":" -f 2)
+
 sed -i "/^${RPC_USER}:/d" ${DELUGE_AUTH_PATH}
 echo "${AUTH}" >>${DELUGE_AUTH_PATH}
 

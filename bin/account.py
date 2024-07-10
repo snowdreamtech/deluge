@@ -3,7 +3,6 @@
 import sys
 import random
 from hashlib import sha1 as sha
-
 username=""
 password=""
 authlevel=5
@@ -27,8 +26,11 @@ else:
     password=random.random()
     authlevel=10
 
+if password == '' :
+    password=random.random()
+
 hashed_password=sha(str(password).encode('utf8')).hexdigest()
 auth_level=str(authlevel)
 
-auth_string = "{username}:{password}:{authlevel}".format(username=username,password=hashed_password,authlevel=auth_level)
-print(auth_string)
+account_string = "{username}:{hashed_password}:{authlevel},{username}:{password}:{authlevel}".format(username=username,password=password,hashed_password=hashed_password,authlevel=auth_level)
+print(account_string)
