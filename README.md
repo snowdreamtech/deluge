@@ -4,14 +4,120 @@
 
 Docker Image packaging for Deluge. (amd64, arm32v6, arm32v7, arm64v8, i386, ppc64le,riscv64, s390x)
 
-# Run
+# Usage
+
+To help you get started creating a container from this image you can either use docker-compose or the docker cli.
+
+## Docker Cli
+
+### Simple
 
 ```bash
-docker run --rm snowdreamtech/deluge:latest
+docker run -d \
+  --name=deluge \
+  -e TZ=Etc/UTC \
+  -e WEBUI_LANG=en \
+  -e WEBUI_PASS=admin \
+  -p 8112:8112 \
+  -p 3000:3000 \
+  -p 6881:6881 \
+  -p 6881:6881/udp \
+  -v /path/to/downloads:/var/lib/deluge/downloads  \
+  -v /path/to/incomplete:/var/lib/deluge/incomplete  \
+  -v /path/to/torrents:/var/lib/deluge/torrents  \
+  --restart unless-stopped \
+  snowdreamtech/deluge:flood-latest
 ```
 
+### Advance
+
 ```bash
-docker run -e TZ=Asia/Shanghai --rm snowdreamtech/deluge:latest
+docker run -d \
+  --name=deluge \
+  -e TZ=Etc/UTC \
+  -e WEBUI_LANG=en \
+  -e WEBUI_PASS=admin \
+  -e WEBUI_PORT=8112 \
+  -e PEER_PORT=6881 \
+  -e RPC_USER=localclient \
+  -e RPC_PASS=localclient \
+  -e RPC_PORT=58846 \
+  -e AUTH_LEVEL=10 \
+  -e FLOOD_AUTH=none \
+  -e FLOOD_PORT=3000 \
+  -p 8112:8112 \
+  -p 3000:3000 \
+  -p 58846:58846 \
+  -p 6881:6881 \
+  -p 6881:6881/udp \
+  -v /path/to/config:/var/lib/deluge/config \
+  -v /path/to/downloads:/var/lib/deluge/downloads  \
+  -v /path/to/incomplete:/var/lib/deluge/incomplete  \
+  -v /path/to/torrents:/var/lib/deluge/torrents  \
+  --restart unless-stopped \
+  snowdreamtech/deluge:flood-latest
+```
+
+## Docker Compose
+
+### Simple
+
+```bash
+version: "3"
+
+services:
+  deluge:
+    image: snowdreamtech/deluge:flood-latest
+    container_name: deluge
+    environment:
+      - TZ=Etc/UTC
+      - WEBUI_LANG=en
+      - WEBUI_PASS=admin
+    volumes:
+      - /path/to/downloads:/var/lib/deluge/downloads
+      - /path/to/incomplete:/var/lib/deluge/incomplete
+      - /path/to/torrents:/var/lib/deluge/torrents
+    ports:
+      - 8112:8112
+      - 3000:3000
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+```
+
+### Advance
+
+```bash
+version: "3"
+
+services:
+  deluge:
+    image: snowdreamtech/deluge:flood-latest
+    container_name: deluge
+    environment:
+      - TZ=Etc/UTC
+      - WEBUI_LANG=en
+      - WEBUI_PASS=admin
+      - WEBUI_PORT=8112
+      - PEER_PORT=6881
+      - RPC_USER=localclient
+      - RPC_PASS=localclient
+      - RPC_PORT=58846
+      - AUTH_LEVEL=10
+      - FLOOD_AUTH=none
+      - FLOOD_PORT=3000
+    volumes:
+      - /path/to/config:/var/lib/deluge/config #optional
+      - /path/to/downloads:/var/lib/deluge/downloads
+      - /path/to/incomplete:/var/lib/deluge/incomplete
+      - /path/to/torrents:/var/lib/deluge/torrents
+    ports:
+      - 8112:8112
+      - 3000:3000
+      - 58846:58846
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
 ```
 
 # Development
