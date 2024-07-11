@@ -32,6 +32,6 @@ COPY bin /var/lib/deluge/bin
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
-EXPOSE 8112 58846 58946 58946/udp
+EXPOSE 8112 58846 6881 6881/udp
 
 ENTRYPOINT ["docker-entrypoint.sh"]
