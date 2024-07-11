@@ -49,7 +49,7 @@ jobs:
           uses: docker/build-push-action@v6.3.0
           with:
             context: .
-            platforms: linux/arm/v6
+            platforms: linux/arm/v7
             push: true
             tags: |
               snowdreamtech/deluge:flood-latest
