@@ -9,13 +9,12 @@ DELUGE_CORE_PATH=${DELUGE_CONFIG_PATH}/core.conf
 DELUGE_WEB_PATH=${DELUGE_CONFIG_PATH}/web.conf
 DELUGE_HOSTLIST_PATH=${DELUGE_CONFIG_PATH}/hostlist.conf
 
-
 # set Auth for RPC
 if [ ! -f "${DELUGE_AUTH_PATH}" ]; then
     touch ${DELUGE_AUTH_PATH}
 fi
 
-AUTH=$(${DELUGE_BIN_PATH}/account.py "${RPC_USER}" "${RPC_PASS}" "${AUTH_LEVEL}" )
+AUTH=$(${DELUGE_BIN_PATH}/account.py "${RPC_USER}" "${RPC_PASS}" "${AUTH_LEVEL}")
 RPC_USER=$(echo "${AUTH}" | cut -d ":" -f 1)
 RPC_HASH=$(echo "${AUTH}" | cut -d ":" -f 2)
 
@@ -24,8 +23,8 @@ echo "${AUTH}" >>${DELUGE_AUTH_PATH}
 
 # set Hostlist for RPC
 if [ ! -f "${DELUGE_HOSTLIST_PATH}" ]; then
-    HOST_ID=$(uuidgen  -x | sed "s|-||g")
-    
+    HOST_ID=$(uuidgen -x | sed "s|-||g")
+
     echo "{
         \"file\": 3,
         \"format\": 1
@@ -39,20 +38,20 @@ if [ ! -f "${DELUGE_HOSTLIST_PATH}" ]; then
                 \"${RPC_HASH}\"
             ]
         ]
-    }" > ${DELUGE_HOSTLIST_PATH}
+    }" >${DELUGE_HOSTLIST_PATH}
 fi
 
 # set RPC_PORT
 if [ -n "${RPC_PORT}" ]; then
     sed -i "s|\"daemon_port\":.*|\"daemon_port\": ${RPC_PORT},|g" ${DELUGE_CORE_PATH}
-    
+
     (
         sleep 5
         if [ -f "${DELUGE_HOSTLIST_PATH}" ]; then
             sed -i "\:127.0.0.1:{
         n
         s/.*/                ${RPC_PORT},/
-            }"  ${DELUGE_HOSTLIST_PATH}
+            }" ${DELUGE_HOSTLIST_PATH}
         fi
     ) &
 fi
@@ -61,10 +60,10 @@ fi
 if [ -n "${WEBUI_PASS}" ]; then
     # password
     HASH=$(${DELUGE_BIN_PATH}/passwd.py "${WEBUI_PASS}")
-    
+
     pwd_salt=$(echo "${HASH}" | cut -d ":" -f 1)
     pwd_sha1=$(echo "${HASH}" | cut -d ":" -f 2)
-    
+
     sed -i "s|\"pwd_salt\":.*|\"pwd_salt\": \"${pwd_salt}\",|g" ${DELUGE_WEB_PATH}
     sed -i "s|\"pwd_sha1\":.*|\"pwd_sha1\": \"${pwd_sha1}\",|g" ${DELUGE_WEB_PATH}
 fi
@@ -86,20 +85,20 @@ if [ -n "${PEER_PORT}" ]; then
      s/.*/            ${PEER_PORT},/
      n
      s/.*/            ${PEER_PORT}/
-    }"  ${DELUGE_CORE_PATH}
+    }" ${DELUGE_CORE_PATH}
 fi
 
 # Deluge Bittorrent Client Daemon
-/usr/bin/deluged --config  ${DELUGE_CONFIG_PATH}
+/usr/bin/deluged --config ${DELUGE_CONFIG_PATH}
 
 # Deluge Bittorrent Client Web Interface
-/usr/bin/deluge-web --config  ${DELUGE_CONFIG_PATH}
+/usr/bin/deluge-web --config ${DELUGE_CONFIG_PATH}
 
 # flood
 if [ "${FLOOD_AUTH}" == "default" ]; then
-    flood --host 0.0.0.0 --port "${FLOOD_PORT}" --auth default > /dev/null 2>&1 
+    flood --host 0.0.0.0 --port "${FLOOD_PORT}" --auth default >/dev/null 2>&1
 else
-    flood --host 0.0.0.0 --port "${FLOOD_PORT}" --auth none --dehost "127.0.0.1" --deport "${RPC_PORT}" --deuser "${RPC_USER}" --depass "${RPC_HASH}" > /dev/null 2>&1 
+    flood --host 0.0.0.0 --port "${FLOOD_PORT}" --auth none --dehost "127.0.0.1" --deport "${RPC_PORT}" --deuser "${RPC_USER}" --depass "${RPC_HASH}" >/dev/null 2>&1
 fi
 
 # exec commands
