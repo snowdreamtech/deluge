@@ -68,7 +68,8 @@ RUN set -eux \
 RUN set -eux \
     && DEBIAN_FRONTEND=noninteractive apt-get -qqy update  \
     && DEBIAN_FRONTEND=noninteractive apt-get -qqy install --no-install-recommends \ 
-    deluge=${DELUGE_VERSION}  \
+    deluged=${DELUGE_VERSION}  \
+    deluge-web=${DELUGE_VERSION}  \
     uuid-runtime \
     && mkdir -p /var/lib/deluge/  \
     && mkdir -p /var/lib/deluge/config/  \
