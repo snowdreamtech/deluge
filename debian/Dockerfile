@@ -24,7 +24,7 @@ ENV KEEPALIVE=1 \
     # which are port numbers less than 1024. 
     CAP_NET_BIND_SERVICE=0
 
-ENV DELUGE_VERSION=2.1.2~dev0+20240910-4 \
+ENV DELUGE_VERSION=2.0.3-4 \
     PEER_PORT=6881 \
     RPC_PORT=58846 \
     RPC_USER="deluge" \
@@ -66,10 +66,8 @@ RUN set -eux \
     && rm -rf /var/tmp/* 
 
 RUN set -eux \
-    && sed -i "s|Suites:\s*bookworm\s*bookworm-updates.*|Suites: bookworm bookworm-updates bookworm-backports trixie sid experimental|g" /etc/apt/sources.list.d/debian.sources \
     && DEBIAN_FRONTEND=noninteractive apt-get -qqy update  \
     && DEBIAN_FRONTEND=noninteractive apt-get -qqy install --no-install-recommends \ 
-    -t trixie \
     deluged=${DELUGE_VERSION}  \
     deluge-web=${DELUGE_VERSION}  \
     uuid-runtime \
