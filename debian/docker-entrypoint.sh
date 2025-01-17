@@ -108,7 +108,7 @@ fi
 /usr/bin/deluged --config ${DELUGE_CONFIG_PATH}
 
 # Deluge Bittorrent Client Web Interface
-/usr/bin/deluge-web --config ${DELUGE_CONFIG_PATH}
+/usr/bin/deluge-web -d --config ${DELUGE_CONFIG_PATH}
 
 # exec commands
 if [ -n "$*" ]; then
