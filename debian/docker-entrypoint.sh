@@ -108,10 +108,10 @@ fi
 /usr/bin/deluged --config ${DELUGE_CONFIG_PATH}
 
 # Deluge Bittorrent Client Web Interface
-/usr/bin/deluge-web -d --config ${DELUGE_CONFIG_PATH}
+# /usr/bin/deluge-web -d --config ${DELUGE_CONFIG_PATH}
 
 # flood
-if [ "${FLOOD_AUTH}" == "default" ]; then
+if [ "${FLOOD_AUTH}" = "default" ]; then
     flood --host 0.0.0.0 --port "${FLOOD_PORT}" --auth default >/dev/null 2>&1
 else
     flood --host 0.0.0.0 --port "${FLOOD_PORT}" --auth none --dehost "127.0.0.1" --deport "${RPC_PORT}" --deuser "${RPC_USER}" --depass "${RPC_HASH}" >/dev/null 2>&1
