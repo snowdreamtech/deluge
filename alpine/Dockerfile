@@ -37,8 +37,8 @@ ENV DELUGE_VERSION=2.1.1-r10 \
 ENV FLOOD_AUTH=none \
     FLOOD_PORT=3000 
 
-ARG GID=1000 \
-    UID=1000  \
+ARG GID=1001 \
+    UID=1001  \
     USER=deluge \
     WORKDIR=/var/lib/deluge
 
