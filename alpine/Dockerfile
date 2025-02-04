@@ -1,4 +1,4 @@
-FROM snowdreamtech/node:dev-alpine
+FROM snowdreamtech/node:18.20.1-alpine3.21
 
 # OCI annotations to image
 LABEL org.opencontainers.image.authors="Snowdream Tech" \
