@@ -1,4 +1,4 @@
-FROM snowdreamtech/debian:12.8.0
+FROM snowdreamtech/node:18.19.0-bookworm
 
 # OCI annotations to image
 LABEL org.opencontainers.image.authors="Snowdream Tech" \
@@ -33,6 +33,9 @@ ENV DELUGE_VERSION=2.0.3-4 \
     WEBUI_PORT=8112 \
     WEBUI_PASS="" \
     WEBUI_LANG="en" 
+
+ENV FLOOD_AUTH=none \
+    FLOOD_PORT=3000 
 
 ARG GID=1000 \
     UID=1000  \
@@ -93,6 +96,8 @@ RUN set -eux \
     && rm -rf /tmp/* \
     && rm -rf /var/tmp/*
 
+RUN npm install --global flood
+
 COPY --chown=${USER}:${USER} config /var/lib/deluge/config
 
 # Switch to the user
@@ -101,7 +106,7 @@ USER ${USER}
 # Set the workdir
 WORKDIR ${WORKDIR}
 
-EXPOSE 8112 58846 6881 6881/udp
+EXPOSE 3000 8112 58846 6881 6881/udp
 
 COPY --chown=${USER}:${USER} docker-entrypoint.sh account.py passwd.py  /usr/local/bin/
 
