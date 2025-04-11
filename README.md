@@ -1,6 +1,6 @@
 # Deluge
 
-[![Deluge](http://dockeri.co/image/snowdreamtech/deluge)](https://hub.docker.com/r/snowdreamtech/deluge)
+[![dockeri.co](https://dockerico.blankenship.io/image/snowdreamtech/deluge)](https://hub.docker.com/r/snowdreamtech/deluge)
 
 Docker Image packaging for Deluge. (amd64, arm32v5,  arm32v6, arm32v7, arm64v8, i386, mips64le, ppc64le,riscv64, s390x)
 
