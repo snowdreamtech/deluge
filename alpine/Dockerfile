@@ -1,4 +1,4 @@
-FROM snowdreamtech/alpine:3.22.2
+FROM snowdreamtech/nodejs:22.16.0-alpine3.22
 
 # OCI annotations to image
 LABEL org.opencontainers.image.authors="Snowdream Tech" \
@@ -58,6 +58,9 @@ ENV DELUGE_VERSION=2.1.1-r10 \
     WEBUI_PASS="" \
     WEBUI_LANG="en" 
 
+ENV FLOOD_AUTH=none \
+    FLOOD_PORT=3000 
+
 # Create a user with PUID and PGID
 RUN if [ "${USER}" != "root" ] && [ ! -d "/home/${USER}" ] && [ "${PUID}" -ne 0 ] && [ "${PGID}" -ne 0 ]; then \
     addgroup -g ${PGID} ${USER}; \
@@ -90,7 +93,9 @@ COPY config /var/lib/deluge/config
 
 COPY account.py passwd.py  /usr/local/bin/
 
-EXPOSE 8112 58846 6881 6881/udp
+RUN npm install --global flood
+
+EXPOSE 3000 8112 58846 6881 6881/udp
 
 COPY entrypoint.d /usr/local/bin/entrypoint.d
 
