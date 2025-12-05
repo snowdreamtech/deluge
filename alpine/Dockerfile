@@ -2,15 +2,15 @@ FROM snowdreamtech/alpine:3.22.2
 
 # OCI annotations to image
 LABEL org.opencontainers.image.authors="Snowdream Tech" \
-    org.opencontainers.image.title="Base Image Based On Alpine" \
-    org.opencontainers.image.description="Docker Images for Base on Alpine. (i386, amd64, arm32v6, arm32v7, arm64, ppc64le,riscv64, s390x)" \
-    org.opencontainers.image.documentation="https://hub.docker.com/r/snowdreamtech/base" \
-    org.opencontainers.image.base.name="snowdreamtech/base:alpine" \
+    org.opencontainers.image.title="Deluge Image Based On Alpine" \
+    org.opencontainers.image.description="Docker Images for Deluge on Alpine. (i386, amd64, arm32v6, arm32v7, arm64, ppc64le,riscv64, s390x)" \
+    org.opencontainers.image.documentation="https://hub.docker.com/r/snowdreamtech/deluge" \
+    org.opencontainers.image.base.name="snowdreamtech/deluge:alpine" \
     org.opencontainers.image.licenses="MIT" \
-    org.opencontainers.image.source="https://github.com/snowdreamtech/base" \
+    org.opencontainers.image.source="https://github.com/snowdreamtech/deluge" \
     org.opencontainers.image.vendor="Snowdream Tech" \
-    org.opencontainers.image.version="3.22.2" \
-    org.opencontainers.image.url="https://github.com/snowdreamtech/base"
+    org.opencontainers.image.version="2.1.1" \
+    org.opencontainers.image.url="https://github.com/snowdreamtech/deluge"
     
 # Switch to the user
 USER root
@@ -48,6 +48,16 @@ ENV KEEPALIVE=${KEEPALIVE} \
     USER=${USER} \
     WORKDIR=${WORKDIR} 
 
+ENV DELUGE_VERSION=2.1.1-r10 \
+    PEER_PORT=6881 \
+    RPC_PORT=58846 \
+    RPC_USER="deluge" \
+    RPC_PASS="" \
+    AUTH_LEVEL=10 \
+    WEBUI_PORT=8112 \
+    WEBUI_PASS="" \
+    WEBUI_LANG="en" 
+
 # Create a user with PUID and PGID
 RUN if [ "${USER}" != "root" ] && [ ! -d "/home/${USER}" ] && [ "${PUID}" -ne 0 ] && [ "${PGID}" -ne 0 ]; then \
     addgroup -g ${PGID} ${USER}; \
@@ -57,12 +67,30 @@ RUN if [ "${USER}" != "root" ] && [ ! -d "/home/${USER}" ] && [ "${PUID}" -ne 0 
 
 RUN apk update \
     && apk add --no-cache \
-    vim
+    deluge=${DELUGE_VERSION}  \
+    uuidgen \
+    && mkdir -p /var/lib/deluge/  \
+    && mkdir -p /var/lib/deluge/config/  \
+    && mkdir -p /var/lib/deluge/incomplete/  \
+    && mkdir -p /var/lib/deluge/downloads/  \
+    && mkdir -p /var/lib/deluge/torrents/  \
+    && mkdir -p /var/lib/deluge/log/  \
+    && mkdir -p /usr/share/GeoIP \
+    && wget -c https://dl.miyuru.lk/geoip/maxmind/country/maxmind.dat.gz \
+    && gunzip maxmind.dat.gz \
+    && mv maxmind.dat /usr/share/GeoIP/GeoIP.dat \
+    && rm -rfv maxmind.dat.gz
 
 # Enable CAP_NET_BIND_SERVICE
 # RUN if [ "${USER}" != "root" ] && [ "${CAP_NET_BIND_SERVICE}" -eq 1 ]; then \
     # setcap 'cap_net_bind_service=+ep' `which nginx`; \
     # fi
+    
+COPY config /var/lib/deluge/config
+
+COPY account.py passwd.py  /usr/local/bin/
+
+EXPOSE 8112 58846 6881 6881/udp
 
 COPY entrypoint.d /usr/local/bin/entrypoint.d
 
