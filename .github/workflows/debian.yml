@@ -5,6 +5,7 @@ on:
     branches:
       - "main"
       - "dev"
+      - flood 
       - "feat/**"
       - "branch/**"
       - "feature/**"
@@ -15,14 +16,17 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+"
       - "V[0-9]+.[0-9]+.[0-9]+"
       - "debian-*.*.*"
+      - "flood-debian-*.*.*"
       - "[0-9]+.[0-9]+"
       - "v[0-9]+.[0-9]+"
       - "V[0-9]+.[0-9]+"
       - "debian-*.*"
+      - "flood-debian-*.*"
       - "[0-9]+"
       - "v[0-9]+"
       - "V[0-9]+"
       - "debian-*"
+      - "flood-debian-*"
   pull_request:
     branches:
       - "main"
@@ -111,9 +115,9 @@ jobs:
         uses: docker/metadata-action@v5.10.0
         with:
           images: |
-            name=snowdreamtech/base,enable=true
-            name=ghcr.io/snowdreamtech/base,enable=true
-            name=quay.io/snowdreamtech/base,enable=true
+            name=snowdreamtech/deluge,enable=true
+            name=ghcr.io/snowdreamtech/deluge,enable=true
+            name=quay.io/snowdreamtech/deluge,enable=true
           flavor: |
             latest=false  
             prefix=
