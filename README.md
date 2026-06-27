@@ -1,9 +1,9 @@
-# Base
+# Deluge
 
-![Docker Image Version](https://img.shields.io/docker/v/snowdreamtech/base)
-![Docker Image Size](https://img.shields.io/docker/image-size/snowdreamtech/base/latest)
-![Docker Pulls](https://img.shields.io/docker/pulls/snowdreamtech/base)
-![Docker Stars](https://img.shields.io/docker/stars/snowdreamtech/base)
+![Docker Image Version](https://img.shields.io/docker/v/snowdreamtech/deluge)
+![Docker Image Size](https://img.shields.io/docker/image-size/snowdreamtech/deluge/latest)
+![Docker Pulls](https://img.shields.io/docker/pulls/snowdreamtech/deluge)
+![Docker Stars](https://img.shields.io/docker/stars/snowdreamtech/deluge)
 
 Docker base template providing standardized container foundations with flexible entrypoint systems, multi-architecture support, and consistent configuration patterns across Alpine, Debian, and Rocky Linux distributions.
 
@@ -22,8 +22,8 @@ The Docker base template serves as a foundational starting point for building co
 
 ```bash
 # Pull and run the default Debian variant
-docker pull snowdreamtech/base:debian
-docker run -d --name=base -e TZ=Asia/Shanghai snowdreamtech/base:debian
+docker pull snowdreamtech/deluge:debian
+docker run -d --name=base -e TZ=Asia/Shanghai snowdreamtech/deluge:debian
 
 # Or use docker-compose
 docker-compose up -d
@@ -40,12 +40,12 @@ docker run -d \
   --name=base \
   -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  snowdreamtech/base:debian
+  snowdreamtech/deluge:debian
 ```
 
 **Supported Architectures**: i386, amd64, arm32v5, arm32v7, arm64, mips64le, ppc64le, s390x
 
-**Base Image**: `snowdreamtech/debian:13.5.0`
+**Deluge Image**: `snowdreamtech/debian:13.5.0`
 
 ### Alpine
 
@@ -56,12 +56,12 @@ docker run -d \
   --name=base \
   -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  snowdreamtech/base:alpine
+  snowdreamtech/deluge:alpine
 ```
 
 **Supported Architectures**: i386, amd64, arm32v6, arm32v7, arm64, ppc64le, riscv64, s390x
 
-**Base Image**: `snowdreamtech/alpine:3.24.0`
+**Deluge Image**: `snowdreamtech/alpine:3.24.0`
 
 ### Rocky
 
@@ -72,12 +72,12 @@ docker run -d \
   --name=base \
   -e TZ=Asia/Shanghai \
   --restart unless-stopped \
-  snowdreamtech/base:rocky
+  snowdreamtech/deluge:rocky
 ```
 
 **Supported Architectures**: i386, amd64, arm32v5, arm32v7, arm64, mips64le, ppc64le, s390x
 
-**Base Image**: `snowdreamtech/rocky:10.2.0`
+**Deluge Image**: `snowdreamtech/rocky:10.2.0`
 
 ## Build Instructions
 
@@ -85,13 +85,13 @@ docker run -d \
 
 ```bash
 # Build Debian variant
-docker build -t snowdreamtech/base:debian ./docker/debian/
+docker build -t snowdreamtech/deluge:debian ./docker/debian/
 
 # Build Alpine variant
-docker build -t snowdreamtech/base:alpine ./docker/alpine/
+docker build -t snowdreamtech/deluge:alpine ./docker/alpine/
 
 # Build Rocky variant
-docker build -t snowdreamtech/base:rocky ./docker/rocky/
+docker build -t snowdreamtech/deluge:rocky ./docker/rocky/
 ```
 
 ### Multi-Architecture Build
@@ -105,21 +105,21 @@ docker buildx create --use --name build --node build --driver-opt network=host
 # Build Debian for multiple architectures
 docker buildx build \
   --platform=linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64,linux/mips64le,linux/ppc64le,linux/s390x \
-  -t snowdreamtech/base:debian \
+  -t snowdreamtech/deluge:debian \
   ./docker/debian/ \
   --push
 
 # Build Alpine for multiple architectures
 docker buildx build \
   --platform=linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/riscv64,linux/s390x \
-  -t snowdreamtech/base:alpine \
+  -t snowdreamtech/deluge:alpine \
   ./docker/alpine/ \
   --push
 
 # Build Rocky for multiple architectures
 docker buildx build \
   --platform=linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64,linux/mips64le,linux/ppc64le,linux/s390x \
-  -t snowdreamtech/base:rocky \
+  -t snowdreamtech/deluge:rocky \
   ./docker/rocky/ \
   --push
 ```
@@ -156,7 +156,7 @@ docker build \
   --build-arg PUID=1000 \
   --build-arg PGID=1000 \
   --build-arg USER=appuser \
-  -t snowdreamtech/base:debian-custom \
+  -t snowdreamtech/deluge:debian-custom \
   ./docker/debian/
 ```
 
@@ -168,7 +168,7 @@ docker run -d \
   -e PUID=1000 \
   -e PGID=1000 \
   -e USER=appuser \
-  snowdreamtech/base:debian
+  snowdreamtech/deluge:debian
 ```
 
 **Note**: User creation only occurs when `PUID≠0`, `PGID≠0`, and `USER≠root`.
@@ -180,7 +180,7 @@ docker run -d \
 ```yaml
 services:
   base:
-    image: snowdreamtech/base:debian
+    image: snowdreamtech/deluge:debian
     container_name: base
     environment:
       - TZ=Asia/Shanghai
@@ -192,7 +192,7 @@ services:
 ```yaml
 services:
   base:
-    image: snowdreamtech/base:debian
+    image: snowdreamtech/deluge:debian
     container_name: base
     environment:
       - TZ=Asia/Shanghai
@@ -209,9 +209,9 @@ Images follow semantic versioning with the format: `{major}.{minor}.{patch}-{var
 
 Examples:
 
-- `snowdreamtech/base:13.5.0-debian`
-- `snowdreamtech/base:3.24.0-alpine`
-- `snowdreamtech/base:10.2.0-rocky`
+- `snowdreamtech/deluge:13.5.0-debian`
+- `snowdreamtech/deluge:3.24.0-alpine`
+- `snowdreamtech/deluge:10.2.0-rocky`
 
 This format allows:
 
@@ -247,7 +247,7 @@ The base template includes a flexible entrypoint system that executes custom ini
 Create custom initialization scripts in your derived Dockerfile:
 
 ```dockerfile
-FROM snowdreamtech/base:debian
+FROM snowdreamtech/deluge:debian
 
 # Add your custom initialization script
 COPY my-init.sh /usr/local/bin/entrypoint.d/20-my-init.sh
@@ -263,7 +263,7 @@ CMD ["/app/start.sh"]
 Enable debug output to troubleshoot entrypoint execution:
 
 ```bash
-docker run -e DEBUG=true snowdreamtech/base:debian
+docker run -e DEBUG=true snowdreamtech/deluge:debian
 ```
 
 Output example:
