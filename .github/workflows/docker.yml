@@ -754,8 +754,8 @@ jobs:
               echo ""
               echo "### 🏗️ Build Configuration"
               echo ""
-              echo "- **Flavor:** ${{ matrix.flavor }}
-**Variant:** ${{ matrix.variant }}"
+              echo "- **Flavor:** ${{ matrix.flavor }}"
+              echo "- **Variant:** ${{ matrix.variant }}"
               echo "- **OS Version:** ${{ matrix.version }}"
               # Set platform count based on variant
               case "${{ matrix.variant }}" in
