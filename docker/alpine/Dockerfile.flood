@@ -1,0 +1,68 @@
+# Base Image (Alpine Variant)
+# Extends snowdreamtech/node with additional tooling and configuration.
+
+FROM snowdreamtech/node:24.16.0-alpine
+
+# Build-time Configuration
+ARG BUILDTIME \
+    VERSION \
+    REVISION \
+    KEEPALIVE=1 \
+    LANG=C.UTF-8 \
+    UMASK=022 \
+    DEBUG=false \
+    PASSWORDLESS_SUDO=false \
+    PGID=0 \
+    PUID=0 \
+    USER=root \
+    WORKDIR=/root \
+    FLOOD_VERSION=4.14.3
+
+# Standard OCI Metadata (https://github.com/opencontainers/image-spec)
+LABEL org.opencontainers.image.authors="Snowdream Tech" \
+    org.opencontainers.image.title="Flood Image Based On Alpine Node" \
+    org.opencontainers.image.description="Docker Images for Flood on Alpine. (386, amd64, arm/v6, arm/v7, arm64, ppc64le, riscv64, s390x)" \
+    org.opencontainers.image.documentation="https://hub.docker.com/r/snowdreamtech/deluge" \
+    org.opencontainers.image.base.name="snowdreamtech/node:24.16.0-alpine" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.source="https://github.com/snowdreamtech/deluge" \
+    org.opencontainers.image.vendor="Snowdream Tech" \
+    org.opencontainers.image.created="${BUILDTIME}" \
+    org.opencontainers.image.revision="${REVISION}" \
+    org.opencontainers.image.url="https://github.com/snowdreamtech/deluge"
+
+# x-release-please-start-version
+LABEL org.opencontainers.image.version="${VERSION:-4.14.3}"
+# x-release-please-end
+
+# Runtime Environment Configuration
+ENV KEEPALIVE=${KEEPALIVE} \
+    LANG=${LANG} \
+    UMASK=${UMASK} \
+    DEBUG=${DEBUG} \
+    PASSWORDLESS_SUDO=${PASSWORDLESS_SUDO} \
+    PGID=${PGID} \
+    PUID=${PUID} \
+    USER=${USER} \
+    WORKDIR=${WORKDIR} \
+    FLOOD_VERSION=${FLOOD_VERSION}
+
+# Additional tooling and configuration
+RUN npm install -g flood@${FLOOD_VERSION} \
+    && mkdir -p /var/lib/flood/config \
+    && mkdir -p /var/lib/flood/downloads
+
+# Container Orchestration Files
+COPY entrypoint.d /usr/local/bin/entrypoint.d
+
+RUN chmod +x /usr/local/bin/entrypoint.d/*
+
+# Standard Healthcheck (Verification of core system responsiveness)
+HEALTHCHECK NONE
+
+# Process Execution
+EXPOSE 3000
+USER root
+WORKDIR /root
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["/bin/sh"]
