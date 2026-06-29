@@ -295,9 +295,9 @@ jobs:
         if: steps.variant-filter.outputs.skip != 'true'
         run: |
           echo "→ Registry login status:"
+          echo "  GHCR: ${{ steps.login-ghcr.outcome }}"
           echo "  DockerHub: ${{ steps.login-dockerhub.outcome }}"
           echo "  Quay.io: ${{ steps.login-quay.outcome }}"
-          echo "  GHCR: ${{ steps.login-ghcr.outcome }}"
 
           if [ "${{ steps.login-dockerhub.outcome }}" != "success" ] && \
             [ "${{ steps.login-quay.outcome }}" != "success" ] && \
@@ -324,8 +324,8 @@ jobs:
         uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
         with:
           images: |
-            name=snowdreamtech/deluge,enable=true
             name=ghcr.io/snowdreamtech/deluge,enable=true
+            name=snowdreamtech/deluge,enable=true
             name=quay.io/snowdreamtech/deluge,enable=true
           flavor: |
             latest=false
@@ -408,8 +408,11 @@ jobs:
         env:
           IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
         run: |
-          # Get the first tag for inspection
-          first_tag=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          # Use GHCR tag for inspection to avoid DockerHub rate limits
+          first_tag=$(echo "${{ steps.meta.outputs.tags }}" | grep '^ghcr.io/' | head -n 1)
+          if [ -z "$first_tag" ]; then
+            first_tag=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          fi
 
           echo "→ Inspecting manifest for: ${first_tag}"
 
@@ -517,22 +520,6 @@ jobs:
           }
 
           # Test images from each registry
-          # DockerHub (no prefix)
-          if [ "${{ steps.login-dockerhub.outcome }}" = "success" ]; then
-            dockerhub_tag=$(echo "${TAGS}" | grep -v '/' | head -n 1)
-            if [ -n "${dockerhub_tag}" ]; then
-              echo "  Testing DockerHub: ${dockerhub_tag}"
-              if retry_pull "${dockerhub_tag}"; then
-                if run_smoke_test "${dockerhub_tag}" "DockerHub"; then
-                  size=$(docker image inspect "${dockerhub_tag}" --format='{{.Size}}' | awk '{printf "%.2f MB", $1/1024/1024}')
-                  echo "  ✓ DockerHub image verified (Size: ${size})"
-                fi
-              else
-                echo "  ✗ DockerHub image pull failed after retries"
-              fi
-            fi
-          fi
-
           # GHCR
           if [ "${{ steps.login-ghcr.outcome }}" = "success" ]; then
             ghcr_tag=$(echo "${TAGS}" | grep '^ghcr.io/' | head -n 1)
@@ -545,6 +532,22 @@ jobs:
                 fi
               else
                 echo "  ✗ GHCR image pull failed after retries"
+              fi
+            fi
+          fi
+
+          # DockerHub (no prefix)
+          if [ "${{ steps.login-dockerhub.outcome }}" = "success" ]; then
+            dockerhub_tag=$(echo "${TAGS}" | grep -v '^ghcr\.io/\|^quay\.io/' | head -n 1)
+            if [ -n "${dockerhub_tag}" ]; then
+              echo "  Testing DockerHub: ${dockerhub_tag}"
+              if retry_pull "${dockerhub_tag}"; then
+                if run_smoke_test "${dockerhub_tag}" "DockerHub"; then
+                  size=$(docker image inspect "${dockerhub_tag}" --format='{{.Size}}' | awk '{printf "%.2f MB", $1/1024/1024}')
+                  echo "  ✓ DockerHub image verified (Size: ${size})"
+                fi
+              else
+                echo "  ✗ DockerHub image pull failed after retries"
               fi
             fi
           fi
@@ -567,6 +570,19 @@ jobs:
 
           echo "✓ Registry verification completed"
 
+      - name: "🏷️ Determine Image for Trivy Scan"
+        id: trivy-image
+        if: steps.variant-filter.outputs.skip != 'true' && steps.build.conclusion == 'success'
+        run: |
+          # Use GHCR tag for Trivy scan to avoid Docker Hub rate limits
+          # Fallback to the first generated tag if GHCR is not found
+          SCAN_TAG=$(echo "${{ steps.meta.outputs.tags }}" | grep '^ghcr.io/' | head -n 1)
+          if [ -z "${SCAN_TAG}" ]; then
+            SCAN_TAG="${{ fromJSON(steps.meta.outputs.json).tags[0] }}"
+          fi
+          echo "tag=${SCAN_TAG}" >> "$GITHUB_OUTPUT"
+          echo "→ Scanning image: ${SCAN_TAG}"
+
       - name: "🕵️ Scan Image for Vulnerabilities (Trivy)"
         id: trivy
         if: steps.variant-filter.outputs.skip != 'true' && steps.build.conclusion == 'success'
@@ -577,7 +593,7 @@ jobs:
           TRIVY_CHECKS_BUNDLE_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-checks"
         with:
           scan-type: "image"
-          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          image-ref: ${{ steps.trivy-image.outputs.tag }}
           format: "sarif"
           output: "trivy-image-${{ matrix.variant }}.sarif"
           severity: "CRITICAL,HIGH,MEDIUM,LOW"
@@ -777,7 +793,7 @@ jobs:
                   ;;
               esac
               echo "- **Package Manager:** ${{ matrix.package_manager }}"
-              echo "- **Registries:** DockerHub (${{ steps.login-dockerhub.outcome }}), GHCR (${{ steps.login-ghcr.outcome }}), Quay.io (${{ steps.login-quay.outcome }})"
+              echo "- **Registries:** GHCR (${{ steps.login-ghcr.outcome }}), DockerHub (${{ steps.login-dockerhub.outcome }}), Quay.io (${{ steps.login-quay.outcome }})"
               echo "- **Cache Sources:** Current branch + main + dev"
               echo ""
               echo "### 🔐 Security & Compliance"
