@@ -16,7 +16,7 @@ ARG BUILDTIME \
     PUID=0 \
     USER=root \
     WORKDIR=/root \
-    DELUGE_VERSION=2.1.1-r10
+    DELUGE_VERSION=2.2.0-r3
 
 # Standard OCI Metadata (https://github.com/opencontainers/image-spec)
 LABEL org.opencontainers.image.authors="Snowdream Tech" \
