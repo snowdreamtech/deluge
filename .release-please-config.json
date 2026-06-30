@@ -13,6 +13,11 @@
           "type": "generic",
           "path": "Dockerfile.deluge",
           "glob": false
+        },
+        {
+          "type": "generic",
+          "path": "Dockerfile.flood",
+          "glob": false
         }
       ]
     },
@@ -28,6 +33,11 @@
           "type": "generic",
           "path": "Dockerfile.deluge",
           "glob": false
+        },
+        {
+          "type": "generic",
+          "path": "Dockerfile.flood",
+          "glob": false
         }
       ]
     },
@@ -42,6 +52,11 @@
         {
           "type": "generic",
           "path": "Dockerfile.deluge",
+          "glob": false
+        },
+        {
+          "type": "generic",
+          "path": "Dockerfile.flood",
           "glob": false
         }
       ]
