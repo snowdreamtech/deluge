@@ -1,7 +1,7 @@
 # Base Image (Rocky Variant)
 # Extends snowdreamtech/node with additional tooling and configuration.
 
-FROM snowdreamtech/node:22.22.2-rocky
+FROM ghcr.io/snowdreamtech/rocky:9.7.0
 
 # Build-time Configuration
 ARG BUILDTIME \
@@ -16,14 +16,15 @@ ARG BUILDTIME \
     PUID=0 \
     USER=root \
     WORKDIR=/root \
-    FLOOD_VERSION=4.14.3
+    FLOOD_VERSION=4.14.3 \
+    DELUGE_VERSION=2.1.1
 
 # Standard OCI Metadata (https://github.com/opencontainers/image-spec)
 LABEL org.opencontainers.image.authors="Snowdream Tech" \
     org.opencontainers.image.title="Flood Image Based On Rocky Node" \
     org.opencontainers.image.description="Docker Images for Flood on Rocky. (amd64, arm64, ppc64le, s390x)" \
     org.opencontainers.image.documentation="https://hub.docker.com/r/snowdreamtech/deluge" \
-    org.opencontainers.image.base.name="snowdreamtech/node:22.22.2-rocky" \
+    org.opencontainers.image.base.name="snowdreamtech/rocky:9.7.0" \
     org.opencontainers.image.licenses="MIT" \
     org.opencontainers.image.source="https://github.com/snowdreamtech/deluge" \
     org.opencontainers.image.vendor="Snowdream Tech" \
@@ -45,10 +46,19 @@ ENV KEEPALIVE=${KEEPALIVE} \
     PUID=${PUID} \
     USER=${USER} \
     WORKDIR=${WORKDIR} \
-    FLOOD_VERSION=${FLOOD_VERSION}
+    FLOOD_VERSION=${FLOOD_VERSION} \
+    DELUGE_VERSION=${DELUGE_VERSION}
 
 # Additional tooling and configuration
-RUN npm install -g flood@${FLOOD_VERSION} \
+RUN dnf install -y epel-release \
+    && dnf install -y \
+    nodejs \
+    deluge-daemon-${DELUGE_VERSION} \
+    deluge-web-${DELUGE_VERSION} \
+    && npm install -g flood@${FLOOD_VERSION} \
+    && dnf clean all \
+    && mkdir -p /var/lib/deluge/config \
+    && mkdir -p /var/lib/deluge/downloads \
     && mkdir -p /var/lib/flood/config \
     && mkdir -p /var/lib/flood/downloads
 
@@ -61,7 +71,7 @@ RUN chmod +x /usr/local/bin/entrypoint.d/*
 HEALTHCHECK NONE
 
 # Process Execution
-EXPOSE 3000
+EXPOSE 3000 8112 58846 58081 58081/udp
 USER root
 WORKDIR /root
 ENTRYPOINT ["docker-entrypoint.sh"]

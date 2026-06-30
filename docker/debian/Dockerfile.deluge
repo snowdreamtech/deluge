@@ -48,10 +48,13 @@ ENV KEEPALIVE=${KEEPALIVE} \
     DELUGE_VERSION=${DELUGE_VERSION}
 
 # Additional tooling and configuration
-RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -qqy update \
+    && apt-get -qqy install --no-install-recommends \
     deluged=${DELUGE_VERSION} \
     deluge-web=${DELUGE_VERSION} \
+    && apt-get -qqy clean \
+    && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/lib/deluge/config \
     && mkdir -p /var/lib/deluge/downloads
 

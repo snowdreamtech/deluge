@@ -1,7 +1,7 @@
 # Base Image (Rocky Variant)
 # Extends snowdreamtech/alpine with additional tooling and configuration.
 
-FROM ghcr.io/snowdreamtech/rocky:10.2.0
+FROM ghcr.io/snowdreamtech/rocky:9.7.0
 
 # Build-time Configuration
 ARG BUILDTIME \
@@ -23,7 +23,7 @@ LABEL org.opencontainers.image.authors="Snowdream Tech" \
     org.opencontainers.image.title="Deluge Image Based On Rocky" \
     org.opencontainers.image.description="Docker Images for Deluge on Rocky. (amd64, arm64, ppc64le, s390x)" \
     org.opencontainers.image.documentation="https://hub.docker.com/r/snowdreamtech/deluge" \
-    org.opencontainers.image.base.name="snowdreamtech/rocky:10.2.0" \
+    org.opencontainers.image.base.name="snowdreamtech/rocky:9.7.0" \
     org.opencontainers.image.licenses="MIT" \
     org.opencontainers.image.source="https://github.com/snowdreamtech/deluge" \
     org.opencontainers.image.vendor="Snowdream Tech" \
@@ -52,6 +52,7 @@ RUN dnf install -y epel-release \
     && dnf install -y \
     deluge-daemon-${DELUGE_VERSION} \
     deluge-web-${DELUGE_VERSION} \
+    && dnf clean all \
     && mkdir -p /var/lib/deluge/config \
     && mkdir -p /var/lib/deluge/downloads
 
