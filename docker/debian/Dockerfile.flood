@@ -1,7 +1,7 @@
 # Base Image (Debian Variant)
 # Extends snowdreamtech/node with additional tooling and configuration.
 
-FROM snowdreamtech/node:20.19.2-debian
+FROM ghcr.io/snowdreamtech/node:20.19.2-debian
 
 # Build-time Configuration
 ARG BUILDTIME \
@@ -33,7 +33,7 @@ LABEL org.opencontainers.image.authors="Snowdream Tech" \
     org.opencontainers.image.url="https://github.com/snowdreamtech/deluge"
 
 # x-release-please-start-version
-LABEL org.opencontainers.image.version="${VERSION:-4.14.3}"
+LABEL org.opencontainers.image.version="${VERSION:-2.1.1}"
 # x-release-please-end
 
 # Runtime Environment Configuration
