@@ -63,6 +63,7 @@ docker run -d \
 
 **基础镜像**：`snowdreamtech/alpine:3.24.0`
 
+<!--
 ### Rocky
 
 基于 Rocky Linux 的企业级变体，适用于需要 RHEL 兼容性的生产环境。
@@ -78,6 +79,7 @@ docker run -d \
 **支持的架构**：i386、amd64、arm32v5、arm32v7、arm64、mips64le、ppc64le、s390x
 
 **基础镜像**：`snowdreamtech/rocky:9.7.0`
+-->
 
 ## 构建说明
 
@@ -90,8 +92,10 @@ docker build -t snowdreamtech/deluge:debian ./docker/debian/
 # 构建 Alpine 变体
 docker build -t snowdreamtech/deluge:alpine ./docker/alpine/
 
+<!--
 # 构建 Rocky 变体
 docker build -t snowdreamtech/deluge:rocky ./docker/rocky/
+-->
 ```
 
 ### 多架构构建
@@ -116,12 +120,14 @@ docker buildx build \
   ./docker/alpine/ \
   --push
 
+<!--
 # 为多个架构构建 Rocky
 docker buildx build \
   --platform=linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64,linux/mips64le,linux/ppc64le,linux/s390x \
   -t snowdreamtech/deluge:rocky \
   ./docker/rocky/ \
   --push
+-->
 ```
 
 ## 环境变量

@@ -63,6 +63,7 @@ docker run -d \
 
 **Deluge Image**: `snowdreamtech/alpine:3.24.0`
 
+<!--
 ### Rocky
 
 Enterprise-focused variant based on Rocky Linux, ideal for production environments requiring RHEL compatibility.
@@ -78,6 +79,7 @@ docker run -d \
 **Supported Architectures**: i386, amd64, arm32v5, arm32v7, arm64, mips64le, ppc64le, s390x
 
 **Deluge Image**: `snowdreamtech/rocky:9.7.0`
+-->
 
 ## Build Instructions
 
@@ -90,8 +92,10 @@ docker build -t snowdreamtech/deluge:debian ./docker/debian/
 # Build Alpine variant
 docker build -t snowdreamtech/deluge:alpine ./docker/alpine/
 
+<!--
 # Build Rocky variant
 docker build -t snowdreamtech/deluge:rocky ./docker/rocky/
+-->
 ```
 
 ### Multi-Architecture Build
@@ -116,12 +120,14 @@ docker buildx build \
   ./docker/alpine/ \
   --push
 
+<!--
 # Build Rocky for multiple architectures
 docker buildx build \
   --platform=linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64,linux/mips64le,linux/ppc64le,linux/s390x \
   -t snowdreamtech/deluge:rocky \
   ./docker/rocky/ \
   --push
+-->
 ```
 
 ## Environment Variables
