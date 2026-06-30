@@ -542,7 +542,7 @@ jobs:
 
           # DockerHub (filter out ghcr and quay)
           if [ "${{ steps.login-dockerhub.outcome }}" = "success" ]; then
-            dockerhub_tag=$(echo "${TAGS}" | grep -v '/' | head -n 1)
+            dockerhub_tag=$(echo "${TAGS}" | grep -v '^ghcr\.io/\|^quay\.io/' | head -n 1)
             if [ -n "${dockerhub_tag}" ]; then
               echo "  Testing DockerHub: ${dockerhub_tag}"
               if retry_pull "${dockerhub_tag}"; then
