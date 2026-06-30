@@ -77,7 +77,7 @@ docker run -d \
 
 **支持的架构**：i386、amd64、arm32v5、arm32v7、arm64、mips64le、ppc64le、s390x
 
-**基础镜像**：`snowdreamtech/rocky:10.2.0`
+**基础镜像**：`snowdreamtech/rocky:9.7.0`
 
 ## 构建说明
 
@@ -211,7 +211,7 @@ services:
 
 - `snowdreamtech/deluge:13.5.0-debian`
 - `snowdreamtech/deluge:3.24.0-alpine`
-- `snowdreamtech/deluge:10.2.0-rocky`
+- `snowdreamtech/deluge:9.7.0-rocky`
 
 此格式允许：
 
