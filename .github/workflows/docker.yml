@@ -238,7 +238,7 @@ jobs:
 
       - name: "📂 Checkout Repository Code"
         if: steps.variant-filter.outputs.skip != 'true'
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           token: ${{ secrets.WORKFLOW_SECRET || secrets.GITHUB_TOKEN }}
           persist-credentials: false
@@ -352,6 +352,8 @@ jobs:
             type=schedule,enable=${{ matrix.is_latest }},priority=900,prefix=,suffix=${{ steps.tag-suffix.outputs.global_suffix }},pattern={{date 'YYYYMMDD'}}
             # Semantic version tags from Release Please (variant-x.y.z) - variant-suffixed
             type=match,enable=${{ startsWith(github.ref, format('refs/tags/{0}-', matrix.variant)) }},priority=800,prefix=,suffix=${{ steps.tag-suffix.outputs.suffix }},pattern=${{ matrix.variant }}-v?(\d+\.\d+\.\d+),group=1
+            # Semantic version tags - global tag (only for is_latest variant, no suffix)
+            type=match,enable=${{ matrix.is_latest && startsWith(github.ref, format('refs/tags/{0}-', matrix.variant)) }},priority=800,prefix=,suffix=${{ steps.tag-suffix.outputs.global_suffix }},pattern=${{ matrix.variant }}-v?(\d+\.\d+\.\d+),group=1
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
@@ -510,6 +512,7 @@ jobs:
                 printf '  ✓ User context: ' && id -un && \
                 printf '  ✓ Package manager: ' && \
                 ${pkg_check} && echo 'functional' && \
+                printf '  ✓ App version: ' && ( if [ "${{ matrix.flavor }}" = "deluge" ]; then deluged --version | head -n 1; else flood --version | head -n 1; fi ) && \
                 echo '  ✓ All checks passed'
               "; then
               return 0
@@ -536,9 +539,9 @@ jobs:
             fi
           fi
 
-          # DockerHub (no prefix)
+          # DockerHub (filter out ghcr and quay)
           if [ "${{ steps.login-dockerhub.outcome }}" = "success" ]; then
-            dockerhub_tag=$(echo "${TAGS}" | grep -v '^ghcr\.io/\|^quay\.io/' | head -n 1)
+            dockerhub_tag=$(echo "${TAGS}" | grep -v '/' | head -n 1)
             if [ -n "${dockerhub_tag}" ]; then
               echo "  Testing DockerHub: ${dockerhub_tag}"
               if retry_pull "${dockerhub_tag}"; then
