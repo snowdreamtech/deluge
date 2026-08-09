@@ -52,9 +52,7 @@ ENV KEEPALIVE=${KEEPALIVE} \
 # Additional tooling and configuration
 RUN apk update \
     && apk add --no-cache \
-    deluge@edgecommunity=${DELUGE_VERSION} \
-    py3-wheel@edge \
-    py3-xdg@edgecommunity \
+    deluge=${DELUGE_VERSION} \
     && npm install -g flood@${FLOOD_VERSION} \
     && mkdir -p /var/lib/deluge/config \
     && mkdir -p /var/lib/deluge/downloads \
