@@ -21,7 +21,7 @@ ARG BUILDTIME \
 # Standard OCI Metadata (https://github.com/opencontainers/image-spec)
 LABEL org.opencontainers.image.authors="Snowdream Tech" \
     org.opencontainers.image.title="Deluge Image Based On Debian" \
-    org.opencontainers.image.description="Docker Images for Deluge on Debian. (386, amd64, arm/v5, arm/v7, arm64, ppc64le, riscv64, s390x)" \
+    org.opencontainers.image.description="Docker Images for Deluge on Debian. (amd64, arm32v7, arm64, ppc64le, riscv64, s390x)" \
     org.opencontainers.image.documentation="https://hub.docker.com/r/snowdreamtech/deluge" \
     org.opencontainers.image.base.name="snowdreamtech/debian:13.5.0" \
     org.opencontainers.image.licenses="MIT" \
