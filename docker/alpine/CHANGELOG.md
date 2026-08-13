@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.2.0](https://github.com/snowdreamtech/deluge/compare/alpine-v2.1.1...alpine-v2.2.0) (2026-08-13)
+
+
+### 🐛 Bug Fixes
+
+* **alpine:** append edge tags to masked deluge dependencies ([20387fa](https://github.com/snowdreamtech/deluge/commit/20387fa27ba038c6fa4b76f06cfc6fadd1cf8962))
+* **alpine:** update base image to 3.24.1 and revert edge tags ([37b2427](https://github.com/snowdreamtech/deluge/commit/37b24271954feb872aa335c0dc301aa19c3b48b9))
+* remove static version defaults from OCI image labels to use variable injection exclusively ([da5645a](https://github.com/snowdreamtech/deluge/commit/da5645ad4d48467290235abbbd9f31ba70bf690f))
+
+
+### ♻️ Miscellaneous Chores
+
+* add 0-git-keep.sh to prevent empty entrypoint.d directories ([ce77247](https://github.com/snowdreamtech/deluge/commit/ce77247762becc1edf85ec7b57747d3f3127044a))
+* **deps:** merge upstream/dev and update base images ([71f4b8e](https://github.com/snowdreamtech/deluge/commit/71f4b8eba3d710db7ebfe78c2f919de8d0d966c3))
+* merge upstream/dev into dev ([48edc61](https://github.com/snowdreamtech/deluge/commit/48edc61d8f0af777ec6da4e720b28c8158046405))
+* release main ([5a92edb](https://github.com/snowdreamtech/deluge/commit/5a92edb4ba76b04ee6de7369e9471f785849a7ae))
+* release main ([afa286c](https://github.com/snowdreamtech/deluge/commit/afa286c5b9c41908021b044f31fee3348f52c973))
+* release main ([4011a21](https://github.com/snowdreamtech/deluge/commit/4011a21a23395acc9545168c95ca0ec5c867e7d3))
+* **release:** deduplicate CHANGELOG headers ([c2bba24](https://github.com/snowdreamtech/deluge/commit/c2bba247dca89a31accc6e70c5e48b16170b1ce5))
+* **release:** deduplicate CHANGELOG headers ([4f07b71](https://github.com/snowdreamtech/deluge/commit/4f07b71194f58ba214f1fb60ce0dc56d71c499e2))
+* update alpine base image to 3.24.1 ([3021ed3](https://github.com/snowdreamtech/deluge/commit/3021ed3b4ffa5f8916f5fa46aa4325e8ebf84ba6))
+
 ## [2.1.1](https://github.com/snowdreamtech/deluge/compare/alpine-v2.1.1...alpine-v2.1.1) (2026-06-30)
 
 

@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.2.0](https://github.com/snowdreamtech/deluge/compare/rocky-v2.1.1...rocky-v2.2.0) (2026-08-13)
+
+
+### 🐛 Bug Fixes
+
+* remove static version defaults from OCI image labels to use variable injection exclusively ([da5645a](https://github.com/snowdreamtech/deluge/commit/da5645ad4d48467290235abbbd9f31ba70bf690f))
+
+
+### ♻️ Miscellaneous Chores
+
+* add 0-git-keep.sh to prevent empty entrypoint.d directories ([ce77247](https://github.com/snowdreamtech/deluge/commit/ce77247762becc1edf85ec7b57747d3f3127044a))
+* **deps:** merge upstream/dev and update base images ([71f4b8e](https://github.com/snowdreamtech/deluge/commit/71f4b8eba3d710db7ebfe78c2f919de8d0d966c3))
+* **docker:** ignore unavailable repos for rocky build ([a6b6b6e](https://github.com/snowdreamtech/deluge/commit/a6b6b6e5b2288cfeb6b2777902b85e7e5f37f2c3))
+* merge upstream/dev into dev ([48edc61](https://github.com/snowdreamtech/deluge/commit/48edc61d8f0af777ec6da4e720b28c8158046405))
+* release main ([5a92edb](https://github.com/snowdreamtech/deluge/commit/5a92edb4ba76b04ee6de7369e9471f785849a7ae))
+* release main ([4011a21](https://github.com/snowdreamtech/deluge/commit/4011a21a23395acc9545168c95ca0ec5c867e7d3))
+* release main ([d52be5c](https://github.com/snowdreamtech/deluge/commit/d52be5cf0c5cff45f7f72e973d62c94b48855e1b))
+* **release:** deduplicate CHANGELOG headers ([c2bba24](https://github.com/snowdreamtech/deluge/commit/c2bba247dca89a31accc6e70c5e48b16170b1ce5))
+* **release:** deduplicate CHANGELOG headers ([4f07b71](https://github.com/snowdreamtech/deluge/commit/4f07b71194f58ba214f1fb60ce0dc56d71c499e2))
+* **release:** deduplicate CHANGELOG headers ([3068d88](https://github.com/snowdreamtech/deluge/commit/3068d883bc6167773d046d3b2b0e4c479e4fee39))
+* **speckit:** manual auto-commit trigger ([5f8a5a9](https://github.com/snowdreamtech/deluge/commit/5f8a5a9cba5d6bd42a65eaabfecd6e18b01aeeb0))
+
 ## [2.1.1](https://github.com/snowdreamtech/deluge/compare/rocky-v2.1.1...rocky-v2.1.1) (2026-06-30)
 
 
