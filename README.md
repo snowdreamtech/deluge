@@ -43,9 +43,9 @@ docker run -d \
   snowdreamtech/deluge:debian
 ```
 
-**Supported Architectures**: i386, amd64, arm32v5, arm32v7, arm64, mips64le, ppc64le, s390x
+**Supported Architectures**: amd64, arm32v7, arm64, ppc64le, riscv64, s390x
 
-**Deluge Image**: `snowdreamtech/debian:13.5.0`
+**Deluge Image**: `snowdreamtech/debian:13.6.0`
 
 ### Alpine
 
@@ -61,7 +61,7 @@ docker run -d \
 
 **Supported Architectures**: i386, amd64, arm32v6, arm32v7, arm64, ppc64le, riscv64, s390x
 
-**Deluge Image**: `snowdreamtech/alpine:3.24.0`
+**Deluge Image**: `snowdreamtech/alpine:3.24.1`
 
 <!--
 ### Rocky
@@ -78,7 +78,7 @@ docker run -d \
 
 **Supported Architectures**: i386, amd64, arm32v5, arm32v7, arm64, mips64le, ppc64le, s390x
 
-**Deluge Image**: `snowdreamtech/rocky:9.7.0`
+**Deluge Image**: `snowdreamtech/rocky:10.2.0`
 -->
 
 ## Build Instructions
@@ -108,7 +108,7 @@ docker buildx create --use --name build --node build --driver-opt network=host
 
 # Build Debian for multiple architectures
 docker buildx build \
-  --platform=linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64,linux/mips64le,linux/ppc64le,linux/s390x \
+  --platform=linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/riscv64,linux/s390x \
   -t snowdreamtech/deluge:debian \
   ./docker/debian/ \
   --push
@@ -215,13 +215,13 @@ Images follow semantic versioning with the format: `{major}.{minor}.{patch}-{var
 
 Examples:
 
-- `snowdreamtech/deluge:13.5.0-debian`
-- `snowdreamtech/deluge:3.24.0-alpine`
-- `snowdreamtech/deluge:9.7.0-rocky`
+- `snowdreamtech/deluge:13.6.0-debian`
+- `snowdreamtech/deluge:3.24.1-alpine`
+- `snowdreamtech/deluge:10.2.0-rocky`
 
 This format allows:
 
-- **Full version pinning**: `13.5.0-debian` (exact version)
+- **Full version pinning**: `13.6.0-debian` (exact version)
 - **Variant latest tag**: `latest-debian` (tracks most recent release for Debian)
 - **Global latest tag**: `latest` (tracks most recent release, defaults to Debian)
 
