@@ -1,0 +1,75 @@
+# Base Image (Rocky Variant)
+# Extends snowdreamtech/rocky with additional tooling and configuration.
+
+FROM ghcr.io/snowdreamtech/rocky:10.2.0
+
+# Build-time Configuration
+ARG BUILDTIME \
+    VERSION \
+    REVISION \
+    KEEPALIVE=1 \
+    LANG=C.UTF-8 \
+    UMASK=022 \
+    DEBUG=false \
+    PASSWORDLESS_SUDO=false \
+    PGID=0 \
+    PUID=0 \
+    USER=root \
+    WORKDIR=/root \
+    FLOOD_VERSION=4.16.4 \
+    DELUGE_VERSION=2.1.1
+
+# Standard OCI Metadata (https://github.com/opencontainers/image-spec)
+LABEL org.opencontainers.image.authors="Snowdream Tech" \
+    org.opencontainers.image.title="Flood Image Based On Rocky Node" \
+    org.opencontainers.image.description="Docker Images for Flood on Rocky. (amd64, arm64, ppc64le, s390x)" \
+    org.opencontainers.image.documentation="https://hub.docker.com/r/snowdreamtech/deluge" \
+    org.opencontainers.image.base.name="ghcr.io/snowdreamtech/rocky:10.2.0" \
+    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.source="https://github.com/snowdreamtech/deluge" \
+    org.opencontainers.image.vendor="Snowdream Tech" \
+    org.opencontainers.image.version="${VERSION}" \
+    org.opencontainers.image.created="${BUILDTIME}" \
+    org.opencontainers.image.revision="${REVISION}" \
+    org.opencontainers.image.url="https://github.com/snowdreamtech/deluge"
+
+# Runtime Environment Configuration
+ENV KEEPALIVE=${KEEPALIVE} \
+    LANG=${LANG} \
+    UMASK=${UMASK} \
+    DEBUG=${DEBUG} \
+    PASSWORDLESS_SUDO=${PASSWORDLESS_SUDO} \
+    PGID=${PGID} \
+    PUID=${PUID} \
+    USER=${USER} \
+    WORKDIR=${WORKDIR} \
+    FLOOD_VERSION=${FLOOD_VERSION} \
+    DELUGE_VERSION=${DELUGE_VERSION}
+
+# Additional tooling and configuration
+RUN dnf install -y epel-release \
+    && dnf install -y \
+    nodejs \
+    deluge-daemon-${DELUGE_VERSION} \
+    deluge-web-${DELUGE_VERSION} \
+    && npm install -g flood@${FLOOD_VERSION} \
+    && dnf clean all \
+    && mkdir -p /var/lib/deluge/config \
+    && mkdir -p /var/lib/deluge/downloads \
+    && mkdir -p /var/lib/flood/config \
+    && mkdir -p /var/lib/flood/downloads
+
+# Container Orchestration Files
+COPY entrypoint.d /usr/local/bin/entrypoint.d
+
+RUN chmod +x /usr/local/bin/entrypoint.d/*
+
+# Standard Healthcheck (Verification of core system responsiveness)
+HEALTHCHECK NONE
+
+# Process Execution
+EXPOSE 3000 8112 58846 58081 58081/udp
+USER root
+WORKDIR /root
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["/bin/bash"]

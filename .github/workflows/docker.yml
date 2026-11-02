@@ -67,15 +67,17 @@ permissions:
 
 jobs:
   buildx:
-    name: "🚀 Build & Deliver (${{ matrix.variant }})"
+    name: "🚀 Build & Deliver (${{ matrix.flavor }}-${{ matrix.variant }})"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        flavor: [deluge, flood]
+        variant: [alpine, debian]
         include:
           - variant: alpine
             # x-release-please-start-version
-            version: "3.24.1"
+            version: "2.2.0"
             # x-release-please-end
             context: docker/alpine
             platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/riscv64,linux/s390x
@@ -84,23 +86,23 @@ jobs:
 
           - variant: debian
             # x-release-please-start-version
-            version: "13.6.0"
+            version: "2.2.0"
             # x-release-please-end
             context: docker/debian
-            platforms: linux/amd64,linux/arm/v7,linux/arm64,linux/riscv64,linux/ppc64le,linux/s390x
+            platforms: linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/riscv64,linux/s390x
             is_latest: true
             package_manager: apt-get
 
-          - variant: rocky
-            # x-release-please-start-version
-            version: "10.2.0"
-            # x-release-please-end
-            context: docker/rocky
-            platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
-            is_latest: false
-            package_manager: dnf
+#          - variant: rocky
+#            # x-release-please-start-version
+#            version: "2.2.0"
+#            # x-release-please-end
+#            context: docker/rocky
+#            platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
+#            is_latest: false
+#            package_manager: dnf
     concurrency:
-      group: docker-${{ github.workflow }}-${{ github.event_name == 'schedule' && 'nightly' || github.ref }}-${{ matrix.variant }}
+      group: docker-${{ github.workflow }}-${{ github.event_name == 'schedule' && 'nightly' || github.ref }}-${{ matrix.flavor }}-${{ matrix.variant }}
       cancel-in-progress: ${{ github.event_name != 'schedule' }}
     permissions:
       contents: read
@@ -169,11 +171,11 @@ jobs:
           fi
 
           echo "skip=false" >> "$GITHUB_OUTPUT"
-          echo "→ Building ${{ matrix.variant }} ${{ matrix.version }}"
+          echo "→ Running build for ${{ matrix.variant }}"
 
       - name: "⏱️ Record Build Start Time"
-        if: steps.variant-filter.outputs.skip != 'true'
         id: start-time
+        if: steps.variant-filter.outputs.skip != 'true'
         run: |
           echo "timestamp=$(date -u +%s)" >> "$GITHUB_OUTPUT"
           echo "datetime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
@@ -258,39 +260,56 @@ jobs:
             echo "is_stable=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: "🏷️ Compute Tag Suffixes"
+        id: tag-suffix
+        if: steps.variant-filter.outputs.skip != 'true'
+        run: |
+          if [ "${{ matrix.flavor }}" = "deluge" ]; then
+            echo "suffix=-${{ matrix.variant }}" >> "$GITHUB_OUTPUT"
+            echo "global_suffix=" >> "$GITHUB_OUTPUT"
+          elif [ "${{ matrix.flavor }}" = "flood" ]; then
+            echo "suffix=-flood-${{ matrix.variant }}" >> "$GITHUB_OUTPUT"
+            echo "global_suffix=-flood" >> "$GITHUB_OUTPUT"
+          else
+            echo "suffix=-${{ matrix.flavor }}-${{ matrix.variant }}" >> "$GITHUB_OUTPUT"
+            echo "global_suffix=-${{ matrix.flavor }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: "🏷️ Generate Docker Metadata"
         if: steps.variant-filter.outputs.skip != 'true'
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: |
-            name=ghcr.io/snowdreamtech/base,enable=true
-            name=snowdreamtech/base,enable=true
+            name=ghcr.io/snowdreamtech/deluge,enable=true
+            name=snowdreamtech/deluge,enable=true
           flavor: |
             latest=false
             prefix=
             suffix=
           tags: |
             # Branch builds (non-tag pushes) - variant-suffixed branch tag
-            type=ref,enable=${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }},priority=600,prefix=,suffix=-${{ matrix.variant }},event=branch
+            type=ref,enable=${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') }},priority=600,prefix=,suffix=${{ steps.tag-suffix.outputs.suffix }},event=branch
             # Main/master branch - variant-suffixed tag
-            type=raw,enable=${{ contains(fromJSON('["refs/heads/main", "refs/heads/master"]'), github.ref) && github.event_name != 'schedule' }},priority=200,prefix=,suffix=-${{ matrix.variant }},value=latest
+            type=raw,enable=${{ contains(fromJSON('["refs/heads/main", "refs/heads/master"]'), github.ref) && github.event_name != 'schedule' }},priority=200,prefix=,suffix=${{ steps.tag-suffix.outputs.suffix }},value=latest
             # Main/master branch - global latest tag (only for is_latest variant, no suffix)
-            type=raw,enable=${{ matrix.is_latest && contains(fromJSON('["refs/heads/main", "refs/heads/master"]'), github.ref) && github.event_name != 'schedule' }},priority=200,prefix=,suffix=,value=latest
+            type=raw,enable=${{ matrix.is_latest && contains(fromJSON('["refs/heads/main", "refs/heads/master"]'), github.ref) && github.event_name != 'schedule' }},priority=200,prefix=,suffix=${{ steps.tag-suffix.outputs.global_suffix }},value=latest
             # Tag builds - variant-suffixed tag (stable only)
-            type=raw,enable=${{ steps.tag-check.outputs.is_stable == 'true' }},priority=200,prefix=,suffix=-${{ matrix.variant }},value=latest
+            type=raw,enable=${{ steps.tag-check.outputs.is_stable == 'true' }},priority=200,prefix=,suffix=${{ steps.tag-suffix.outputs.suffix }},value=latest
             # Tag builds - global latest tag (only for is_latest variant, no suffix, stable only)
-            type=raw,enable=${{ matrix.is_latest && steps.tag-check.outputs.is_stable == 'true' }},priority=200,prefix=,suffix=,value=latest
+            type=raw,enable=${{ matrix.is_latest && steps.tag-check.outputs.is_stable == 'true' }},priority=200,prefix=,suffix=${{ steps.tag-suffix.outputs.global_suffix }},value=latest
             # Nightly builds - variant-suffixed
-            type=schedule,enable=true,priority=1000,prefix=,suffix=-${{ matrix.variant }},pattern=nightly
+            type=schedule,enable=true,priority=1000,prefix=,suffix=${{ steps.tag-suffix.outputs.suffix }},pattern=nightly
             # Nightly builds - global nightly tag (only for is_latest variant, no suffix)
-            type=schedule,enable=${{ matrix.is_latest }},priority=1000,prefix=,suffix=,pattern=nightly
+            type=schedule,enable=${{ matrix.is_latest }},priority=1000,prefix=,suffix=${{ steps.tag-suffix.outputs.global_suffix }},pattern=nightly
             # Semantic version tags (vX.Y.Z) - variant-suffixed
-            type=semver,pattern={{version}},suffix=-${{ matrix.variant }}
+            type=semver,pattern={{version}},suffix=${{ steps.tag-suffix.outputs.suffix }}
             # Semantic version tags (vX.Y.Z) - global tag (only for is_latest variant, no suffix)
-            type=semver,pattern={{version}},enable=${{ matrix.is_latest }}
+            type=semver,pattern={{version}},enable=${{ matrix.is_latest }},suffix=${{ steps.tag-suffix.outputs.global_suffix }}
             # Variant-prefixed tags from Release Please (variant-x.y.z) - variant-suffixed
-            type=match,enable=${{ startsWith(github.ref, format('refs/tags/{0}-', matrix.variant)) }},priority=800,prefix=,suffix=-${{ matrix.variant }},pattern=${{ matrix.variant }}-v?(.*),group=1
+            type=match,enable=${{ startsWith(github.ref, format('refs/tags/{0}-', matrix.variant)) }},priority=800,prefix=,suffix=${{ steps.tag-suffix.outputs.suffix }},pattern=${{ matrix.variant }}-v?(.*),group=1
+            # Variant-prefixed tags from Release Please (variant-x.y.z) - global tag (only for is_latest variant, no suffix)
+            type=match,enable=${{ matrix.is_latest && startsWith(github.ref, format('refs/tags/{0}-', matrix.variant)) }},priority=800,prefix=,suffix=${{ steps.tag-suffix.outputs.global_suffix }},pattern=${{ matrix.variant }}-v?(.*),group=1
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
@@ -300,6 +319,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/Dockerfile.${{ matrix.flavor }}
           build-args: |
             BUILDTIME=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             VERSION=${{ matrix.version }}
@@ -312,10 +332,11 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           cache-from: |
-            type=gha,scope=${{ github.ref_name }}-${{ matrix.variant }}
-            type=gha,scope=main-${{ matrix.variant }}
-            type=gha,scope=dev-${{ matrix.variant }}
-          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.variant }}
+            type=gha,scope=${{ github.ref_name }}-${{ matrix.flavor }}-${{ matrix.variant }}
+            type=gha,scope=main-${{ matrix.flavor }}-${{ matrix.variant }}
+            type=gha,scope=dev-${{ matrix.flavor }}-${{ matrix.variant }}
+          cache-to: |
+            type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.flavor }}-${{ matrix.variant }}
 
       - name: "📈 Analyze Build Cache Performance"
         id: cache-stats
@@ -326,64 +347,64 @@ jobs:
           end_time=$(date -u +%s)
           duration=$((end_time - start_time))
 
-          echo "duration_seconds=${duration}" >> "$GITHUB_OUTPUT"
-          echo "duration_minutes=$((duration / 60))" >> "$GITHUB_OUTPUT"
-
-          # Estimate cache efficiency (based on build time)
-          if [ "${duration}" -lt 300 ]; then
-            echo "cache_efficiency=High (< 5 min)" >> "$GITHUB_OUTPUT"
-          elif [ "${duration}" -lt 600 ]; then
-            echo "cache_efficiency=Medium (5-10 min)" >> "$GITHUB_OUTPUT"
-          else
-            echo "cache_efficiency=Low (> 10 min)" >> "$GITHUB_OUTPUT"
-          fi
-
-          echo "→ Build completed in ${duration} seconds ($((duration / 60)) minutes)"
+          echo "duration=${duration}" >> "$GITHUB_OUTPUT"
+          echo "→ Build completed in ${duration} seconds"
 
       - name: "🔍 Verify Docker Manifest (Multi-Platform)"
         id: manifest-check
-        if: steps.variant-filter.outputs.skip != 'true' && steps.build.conclusion == 'success' && steps.build.outputs.digest != ''
-        env:
-          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        if: steps.variant-filter.outputs.skip != 'true' && steps.build.conclusion == 'success'
         run: |
-          # Use GHCR tag for inspection to avoid DockerHub rate limits
+          # Target platform count based on variant
+          case "${{ matrix.variant }}" in
+            alpine)
+              expected_platforms=8
+              ;;
+            debian)
+              expected_platforms=6
+              ;;
+            rocky)
+              expected_platforms=4
+              ;;
+            *)
+              expected_platforms=8
+              ;;
+          esac
+
+          # Select first available tag for manifest inspection
+          # Prioritize GHCR to avoid Docker Hub rate limits
           first_tag=$(echo "${{ steps.meta.outputs.tags }}" | grep '^ghcr.io/' | head -n 1)
-          if [ -z "$first_tag" ]; then
+          if [ -z "${first_tag}" ]; then
             first_tag=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
           fi
 
           echo "→ Inspecting manifest for: ${first_tag}"
+          echo "→ Expected platforms: ${expected_platforms}"
 
-          # Inspect the manifest
-          if manifest=$(docker buildx imagetools inspect "${first_tag}" 2>&1); then
-            echo "${manifest}"
+          # Inspect manifest with retry
+          manifest_output=""
+          for attempt in 1 2 3; do
+            if manifest_output=$(docker buildx imagetools inspect "${first_tag}" 2>&1); then
+              break
+            fi
+            echo "  Attempt ${attempt} failed, retrying in 5s..."
+            sleep 5
+          done
 
-            # Count platforms
-            platform_count=$(echo "${manifest}" | grep -c "Platform:" || echo "0")
-            echo "platform_count=${platform_count}" >> "$GITHUB_OUTPUT"
+          if [ -n "${manifest_output}" ]; then
+            # Count actual platforms in manifest
+            actual_platforms=$(echo "${manifest_output}" | grep -c "Platform:" || true)
+            echo "→ Found ${actual_platforms} platforms in manifest"
+            echo "platform_count=${actual_platforms}" >> "$GITHUB_OUTPUT"
 
-            # Set expected count based on variant
-            case "${{ matrix.variant }}" in
-              alpine)
-                expected_count=8
-                ;;
-              debian)
-                expected_count=6
-                ;;
-              rocky)
-                expected_count=4
-                ;;
-              *)
-                expected_count=8
-                ;;
-            esac
+            # Check if expected platforms are present
+            echo "${manifest_output}" | grep "Platform:" || true
 
-            if [ "${platform_count}" -eq "${expected_count}" ]; then
-              echo "✓ All ${expected_count} platforms verified in manifest"
-              echo "status=success" >> "$GITHUB_OUTPUT"
+            if [ "${actual_platforms}" -ge "${expected_platforms}" ]; then
+              echo "✓ All ${expected_platforms} platforms verified in manifest"
+              echo "status=verified" >> "$GITHUB_OUTPUT"
             else
-              echo "::warning title=Incomplete Manifest::Expected ${expected_count} platforms, found ${platform_count}"
-              echo "status=partial" >> "$GITHUB_OUTPUT"
+              echo "::warning title=Incomplete Platform Manifest::Expected ${expected_platforms} platforms, found ${actual_platforms}"
+              echo "status=incomplete" >> "$GITHUB_OUTPUT"
             fi
           else
             echo "::error title=Manifest Inspection Failed::Could not inspect image manifest"
@@ -441,18 +462,20 @@ jobs:
             # Execute comprehensive test suite
             if docker run --rm \
               -e DEBUG=false \
+              -e KEEPALIVE=0 \
               -e TZ=Asia/Shanghai \
               -e PUID=1000 \
               -e PGID=1000 \
               "${tag}" \
-              sh -c '
-                echo "  ✓ Entrypoint execution: OK" && \
-                printf "  ✓ Timezone: " && date "+%Z %z" && \
-                echo "  ✓ User context: $(id -un 2>/dev/null || id -u)" && \
-                printf "  ✓ Package manager: " && \
-                '"${pkg_check}"' && echo "functional" && \
-                echo "  ✓ All checks passed"
-              '; then
+              sh -c "
+                echo '  ✓ Entrypoint execution: OK' && \
+                printf '  ✓ Timezone: ' && date '+%Z %z' && \
+                printf '  ✓ User context: ' && id -un && \
+                printf '  ✓ Package manager: ' && \
+                ${pkg_check} && echo 'functional' && \
+                printf '  ✓ App version: ' && ( if [ \"\${{ matrix.flavor }}\" = \"deluge\" ]; then deluged --version | head -n 1; else flood --version | head -n 1; fi ) && \
+                echo '  ✓ All checks passed'
+              "; then
               return 0
             else
               echo "  ✗ Smoke test failed for ${registry_name}"
@@ -477,7 +500,7 @@ jobs:
             fi
           fi
 
-          # DockerHub (no prefix)
+          # DockerHub (no prefix or snowdreamtech/ prefix)
           if [ "${{ steps.login-dockerhub.outcome }}" = "success" ]; then
             dockerhub_tag=$(echo "${TAGS}" | grep -v '^ghcr.io/' | head -n 1)
             if [ -n "${dockerhub_tag}" ]; then
@@ -503,52 +526,43 @@ jobs:
           # Fallback to the first generated tag if GHCR is not found
           SCAN_TAG=$(echo "${{ steps.meta.outputs.tags }}" | grep '^ghcr.io/' | head -n 1)
           if [ -z "${SCAN_TAG}" ]; then
-            SCAN_TAG="${{ fromJSON(steps.meta.outputs.json).tags[0] }}"
+            SCAN_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
           fi
           echo "tag=${SCAN_TAG}" >> "$GITHUB_OUTPUT"
-          echo "→ Scanning image: ${SCAN_TAG}"
+          echo "→ Selected tag for Trivy scan: ${SCAN_TAG}"
 
       - name: "🕵️ Scan Image for Vulnerabilities (Trivy)"
         id: trivy
         if: steps.variant-filter.outputs.skip != 'true' && steps.build.conclusion == 'success'
-        continue-on-error: true
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        env:
-          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
-          TRIVY_CHECKS_BUNDLE_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-checks"
         with:
           scan-type: "image"
           image-ref: ${{ steps.trivy-image.outputs.tag }}
           format: "sarif"
-          output: "trivy-image-${{ matrix.variant }}.sarif"
+          output: "trivy-image-${{ matrix.flavor }}-${{ matrix.variant }}.sarif"
           severity: "CRITICAL,HIGH,MEDIUM,LOW"
           ignore-unfixed: true
           exit-code: "0"
-          skip-dirs: "/tmp,/var/tmp,/var/cache"
-          skip-files: "/usr/local/bin/docker-entrypoint.sh"
+        env:
+          TRIVY_CACHE_DIR: .trivycache
+          TRIVY_NO_PROGRESS: "true"
 
       - name: "📊 Parse Trivy Results"
         id: trivy-summary
         if: steps.variant-filter.outputs.skip != 'true' && steps.build.conclusion == 'success' && steps.trivy.outcome == 'success'
         continue-on-error: true
         run: |
-          if [ -f "trivy-image-${{ matrix.variant }}.sarif" ]; then
-            critical=$(jq '[.runs[].results[] | select(.level=="error")] | length' trivy-image-${{ matrix.variant }}.sarif)
-            high=$(jq '[.runs[].results[] | select(.level=="warning")] | length' trivy-image-${{ matrix.variant }}.sarif)
-            medium=$(jq '[.runs[].results[] | select(.level=="note")] | length' trivy-image-${{ matrix.variant }}.sarif)
+          if [ -f "trivy-image-${{ matrix.flavor }}-${{ matrix.variant }}.sarif" ]; then
+            critical=$(jq '[.runs[].results[] | select(.level=="error")] | length' trivy-image-${{ matrix.flavor }}-${{ matrix.variant }}.sarif)
+            high=$(jq '[.runs[].results[] | select(.level=="warning")] | length' trivy-image-${{ matrix.flavor }}-${{ matrix.variant }}.sarif)
+            medium=$(jq '[.runs[].results[] | select(.level=="note")] | length' trivy-image-${{ matrix.flavor }}-${{ matrix.variant }}.sarif)
             {
               echo "critical=${critical}"
               echo "high=${high}"
               echo "medium=${medium}"
             } >> "$GITHUB_OUTPUT"
-            echo "✓ Parsed Trivy results: Critical=${critical}, High=${high}, Medium=${medium}"
-          else
-            echo "⚠️ SARIF file not found, skipping parse"
-            {
-              echo "critical=0"
-              echo "high=0"
-              echo "medium=0"
-            } >> "$GITHUB_OUTPUT"
+
+            echo "→ Vulnerability Summary: ${critical} Critical, ${high} High, ${medium} Medium"
           fi
 
       - name: "📤 Upload Image Security Scan (SARIF)"
@@ -556,29 +570,23 @@ jobs:
         continue-on-error: true
         uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
-          sarif_file: "trivy-image-${{ matrix.variant }}.sarif"
-          category: "trivy-image-base-${{ matrix.variant }}"
+          sarif_file: "trivy-image-${{ matrix.flavor }}-${{ matrix.variant }}.sarif"
+          category: "trivy-image-${{ matrix.flavor }}-${{ matrix.variant }}"
 
       - name: "🗑️ Clean Up Build Artifacts"
         if: steps.variant-filter.outputs.skip != 'true' && always()
         run: |
-          # Remove SARIF files to save space
+          # Clean up large temporary files
           rm -f trivy-image-*.sarif
-          echo "✓ Cleaned up build artifacts"
+          # Prune dangling buildx build cache to prevent disk accumulation
+          docker buildx prune -f --keep-storage 2GB 2>/dev/null || true
 
       - name: "⚠️ Check Vulnerability Threshold"
-        id: vuln-check
-        if: steps.variant-filter.outputs.skip != 'true' && steps.build.conclusion == 'success'
+        if: steps.variant-filter.outputs.skip != 'true' && steps.build.conclusion == 'success' && steps.trivy-summary.outputs.critical != ''
         run: |
-          critical=${{ steps.trivy-summary.outputs.critical }}
-          high=${{ steps.trivy-summary.outputs.high }}
-
-          if [ "${critical}" -gt 0 ]; then
-            echo "::warning title=Critical Vulnerabilities Detected::Found ${critical} critical vulnerabilities in ${{ matrix.variant }} ${{ matrix.version }} image"
-          fi
-
-          if [ "${high}" -gt 5 ]; then
-            echo "::warning title=High Vulnerabilities Detected::Found ${high} high-severity vulnerabilities in ${{ matrix.variant }} ${{ matrix.version }} image"
+          critical_count=${{ steps.trivy-summary.outputs.critical }}
+          if [ "${critical_count}" -gt 0 ]; then
+            echo "::warning title=Security Vulnerabilities Found::Found ${critical_count} critical vulnerabilities (ignore-unfixed mode)"
           fi
 
       - name: "🔏 Install Cosign Tool"
@@ -606,6 +614,7 @@ jobs:
             if cosign sign --yes \
               -a "build-id=${BUILD_ID}" \
               -a "commit=${COMMIT_SHA}" \
+              -a "flavor=${{ matrix.flavor }}" \
               -a "variant=${{ matrix.variant }}" \
               -a "version=${{ matrix.version }}" \
               -a "workflow=${GITHUB_WORKFLOW}" \
@@ -642,40 +651,35 @@ jobs:
             done
           fi
 
-          echo "✓ Signing process completed (${#signed_tags[@]} successful, ${#failed_tags[@]} failed)"
-
       - name: "📊 Generate Build Summary"
         if: steps.variant-filter.outputs.skip != 'true' && always()
         run: |
           {
             echo "## 🐳 Docker Build Summary"
             echo ""
+            echo "**Flavor:** ${{ matrix.flavor }}"
             echo "**Variant:** ${{ matrix.variant }}"
             echo "**Version:** ${{ matrix.version }}"
             echo "**Build Status:** ${{ steps.build.conclusion }}"
-            echo "**Trigger:** ${{ github.event_name }}"
-            echo "**Ref:** \`${{ github.ref }}\`"
-            echo "**Workflow Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
             echo ""
 
             if [ "${{ steps.build.conclusion }}" = "success" ]; then
-              echo "### ⏱️ Build Performance"
-              echo ""
-              echo "- **Duration:** ${{ steps.cache-stats.outputs.duration_seconds }}s (${{ steps.cache-stats.outputs.duration_minutes }} min)"
-              echo "- **Cache Efficiency:** ${{ steps.cache-stats.outputs.cache_efficiency }}"
-              echo "- **Started:** ${{ steps.start-time.outputs.datetime }}"
-              echo ""
-              echo "### 📦 Published Images"
+              echo "### 📦 Published Tags"
               echo ""
               echo '```'
               echo "${{ steps.meta.outputs.tags }}"
               echo '```'
               echo ""
+              echo "### ⏱️ Performance Metrics"
+              echo ""
+              echo "- **Total Build Time:** ${{ steps.cache-stats.outputs.duration }} seconds"
+              echo "- **Started:** ${{ steps.start-time.outputs.datetime }}"
+              echo "- **Completed:** $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              echo ""
 
               if [ -n "${{ steps.manifest-check.outputs.platform_count }}" ]; then
-                echo "### 🔍 Manifest Verification"
+                echo "### 🌐 Multi-Platform Support"
                 echo ""
-                # Set expected count based on variant
                 case "${{ matrix.variant }}" in
                   alpine)
                     expected_count=8
@@ -703,6 +707,7 @@ jobs:
               echo ""
               echo "### 🏗️ Build Configuration"
               echo ""
+              echo "- **Flavor:** ${{ matrix.flavor }}"
               echo "- **Variant:** ${{ matrix.variant }}"
               echo "- **OS Version:** ${{ matrix.version }}"
               # Set platform count based on variant
@@ -721,7 +726,7 @@ jobs:
                   ;;
               esac
               echo "- **Package Manager:** ${{ matrix.package_manager }}"
-              echo "- **Registries:** DockerHub (${{ steps.login-dockerhub.outcome }}), GHCR (${{ steps.login-ghcr.outcome }})"
+              echo "- **Registries:** GHCR (${{ steps.login-ghcr.outcome }}), DockerHub (${{ steps.login-dockerhub.outcome }})"
               echo "- **Cache Sources:** Current branch + main + dev"
               echo ""
               echo "### 🔐 Security & Compliance"
@@ -749,7 +754,7 @@ jobs:
                 case "${{ github.ref }}" in
                   refs/tags/*)
                     echo "**Tag:** \`${{ github.ref }}\`"
-                    echo "**Expected pattern:** \`${{ matrix.variant }}-*\`"
+                    echo "**Expected pattern:** \`${{ matrix.variant }}-*\` or \`${{ matrix.flavor }}-${{ matrix.variant }}-*\`"
                     ;;
                 esac
               fi
@@ -769,15 +774,15 @@ jobs:
       - name: "⚠️ Annotate Build Failure"
         if: steps.variant-filter.outputs.skip != 'true' && failure()
         run: |
-          echo "::error title=Docker Build Failed (${{ matrix.variant }} ${{ matrix.version }})::The multi-platform Docker build failed. Check the workflow logs for details."
+          echo "::error title=Docker Build Failed (${{ matrix.flavor }}-${{ matrix.variant }} ${{ matrix.version }})::The multi-platform Docker build failed. Check the workflow logs for details."
 
           # Detailed failure annotations
           if [ "${{ steps.build.conclusion }}" = "failure" ]; then
-            echo "::error title=Build Step Failed::Docker build process failed for ${{ matrix.variant }} ${{ matrix.version }}"
+            echo "::error title=Build Step Failed::Docker build process failed for ${{ matrix.flavor }}-${{ matrix.variant }} ${{ matrix.version }}"
           fi
 
           if [ "${{ steps.trivy.conclusion }}" = "failure" ]; then
-            echo "::error title=Security Scan Failed::Trivy vulnerability scan failed for ${{ matrix.variant }} ${{ matrix.version }}"
+            echo "::error title=Security Scan Failed::Trivy vulnerability scan failed for ${{ matrix.flavor }}-${{ matrix.variant }} ${{ matrix.version }}"
           fi
 
           if [ "${{ steps.login-dockerhub.outcome }}" != "success" ] && \
